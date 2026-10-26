@@ -32,6 +32,12 @@ def lim(par):
     return f"{br(lo, 0)}--{br(hi, 0)}"
 
 
+def cientifico(v):
+    """1,2 \\cdot 10^{-5} em LaTeX."""
+    m, e = f"{v:.1e}".split("e")
+    return f"${m.replace('.', '{,}')} \\cdot 10^{{{int(e)}}}$"
+
+
 def escrever(nome, linhas):
     (OUT / f"{nome}.tex").write_text("\n".join(linhas) + "\n", encoding="utf-8")
 
@@ -90,10 +96,45 @@ def duais():
     for r, nome in rot.items():
         if r not in piv.index:
             continue
-        vals = ["--" if pd.isna(piv.loc[r].get(p)) else br(piv.loc[r][p], 4) for p in perfis_]
+        vals = []
+        for p in perfis_:
+            v = piv.loc[r].get(p)
+            if pd.isna(v):
+                vals.append("--")
+            elif abs(v) < 5e-5:
+                vals.append("$<$0{,}0001")
+            else:
+                vals.append(br(v, 4))
         L.append(nome + " & " + " & ".join(vals) + r" \\")
     L += [r"\bottomrule", r"\end{tabular}"]
     escrever("duais", L)
+
+
+ROT_IMPACTO = {"kcal_min": "Energia mínima", "proteina_min": "Proteína mínima",
+               "carboidrato_max": "Carboidrato máximo", "gordura_min": "Gordura mínima",
+               "calcio_min": "Cálcio mínimo", "ferro_min": "Ferro mínimo",
+               "frutas_hortalicas_min": "Frutas e hortaliças"}
+
+
+def impacto():
+    """Preço-sombra x limite: parcela do custo ótimo atribuída a cada restrição."""
+    e3 = pd.read_csv(RES / "e3_duais_custo.csv")
+    piv = e3.pivot_table(index="restricao", columns="perfil", values="impacto")
+    perfis_ = ["referencia", "sobrepeso", "subpeso", "atleta", "vegetariano", "vegano"]
+    L = [r"\begin{tabular}{lrrrrrr}", r"\toprule",
+         " & ".join(["Restrição"] + [CURTO[p] for p in perfis_]) + r" \\", r"\midrule"]
+    for r, nome in ROT_IMPACTO.items():
+        if r not in piv.index:
+            continue
+        L.append(nome + " & " + " & ".join(
+            "--" if pd.isna(piv.loc[r].get(p)) else br(piv.loc[r][p]) for p in perfis_) + r" \\")
+    # pela dualidade forte, custo = soma(y·b) + parcela dos limites de porção x_i <= M_i
+    e1 = pd.read_csv(RES / "e1_linear.csv")
+    custo = e1[e1.objetivo == "custo"].set_index("perfil").custo
+    L.append("Limites de porção $M_i$ & " + " & ".join(br(custo[p] - piv[p].sum()) for p in perfis_) + r" \\")
+    L += [r"\midrule", "Custo ótimo & " + " & ".join(br(custo[p]) for p in perfis_) + r" \\",
+          r"\bottomrule", r"\end{tabular}"]
+    escrever("impacto", L)
 
 
 def inteiro():
@@ -107,6 +148,19 @@ def inteiro():
                  f"{br(r.ga_media)} $\\pm$ {br(r.ga_dp)} & {br(r.ga_otimo_pct, 0)}\\% \\\\")
     L += [r"\bottomrule", r"\end{tabular}"]
     escrever("inteiro", L)
+
+    # resumo por função objetivo (todas as 27 instâncias)
+    nomes = {"custo": "Custo", "sodio": "Sódio", "massa": "Peso total"}
+    L = [r"\begin{tabular}{lrrrrr}", r"\toprule",
+         r"Objetivo & Integralidade & Nós B\&B & AG: desvio médio & AG: pior execução & AG no ótimo \\",
+         r"\midrule"]
+    for obj, nome in nomes.items():
+        x = e5[e5.objetivo == obj]
+        L.append(f"{nome} & {br(x.gap_integralidade_pct.mean(), 1)}\\% & {br(x.bb_nos.mean(), 0)} & "
+                 f"{br(x.ga_gap_medio_pct.mean(), 1)}\\% & {br(x.ga_pior_gap_pct.max(), 1)}\\% & "
+                 f"{br(x.ga_otimo_pct.mean(), 0)}\\% \\\\")
+    L += [r"\bottomrule", r"\end{tabular}"]
+    escrever("inteiro_resumo", L)
 
 
 def tempos():
@@ -148,10 +202,14 @@ def preencher_texto():
     c = e1[e1.objetivo == "custo"].set_index("perfil").custo
     piv = e3.pivot_table(index="restricao", columns="perfil", values="preco_sombra")
     dpa, dpv = piv.loc["proteina_min", "atleta"], piv.loc["proteina_min", "atleta_vegetariano"]
+    imp = e3.pivot_table(index="restricao", columns="perfil", values="impacto")
+    e4 = pd.read_csv(RES / "e4_pareto.csv")
+    par = e4[e4.fronteira == "custo_proteina"]
+    par_v, par_a = par[par.perfil == "vegano"], par[par.perfil == "atleta"]
     valores = {
         "GA_GAP": br(e5.ga_gap_medio_pct.mean(), 1), "GA_OTIMO": br(e5.ga_otimo_pct.mean(), 0),
         "GA_TEMPO": br(e5.ga_tempo_s.mean(), 1), "BB_NOS": br(e5.bb_nos.mean(), 0),
-        "BB_TEMPO": br(e5.bb_tempo_s.mean(), 1), "GAP_INT": br(e5.gap_integralidade_pct.mean(), 1),
+        "BB_TEMPO": br(e5.bb_tempo_s.mean(), 1), "GAP_INT": br(e5[e5.objetivo == "custo"].gap_integralidade_pct.mean(), 1),
         "PIVOS": br(e1.iteracoes.mean(), 0), "TEMPO_LP": br(e1.tempo_ms.mean(), 1),
         "CUSTO_REF": br(c["referencia"]), "CUSTO_ATL": br(c["atleta"]),
         "CUSTO_ATLV": br(c["atleta_vegetariano"]),
@@ -168,6 +226,27 @@ def preencher_texto():
         "GA_EXEC": br(e5.ga_factiveis.sum(), 0),
         "BB_NOS_MAX": br(e5.bb_nos.max(), 0),
         "BB_TEMPO_MAX": br(e5.bb_tempo_s.max(), 1),
+        "GAP_INT_TODOS": br(e5.gap_integralidade_pct.mean(), 1),
+        "GA_PIOR_EXEC": br(e5.ga_pior_gap_pct.max(), 1),
+        "BB_MAIS_RAPIDO": str(int((e5.bb_tempo_s < e5.ga_tempo_s).sum())),
+        "DIF_VALOR_MAX": cientifico(e1.dif_valor_abs.max()),
+        "DIF_DUAIS_MAX": cientifico(e1.dif_duais_abs.max()),
+        "EN_REF_IMP": br(imp.loc["kcal_min", "referencia"]),
+        "EN_REF_PCT": br(imp.loc["kcal_min", "referencia"] / c["referencia"] * 100, 0),
+        "EN_SUB_IMP": br(imp.loc["kcal_min", "subpeso"]),
+        "EN_SUB_PCT": br(imp.loc["kcal_min", "subpeso"] / c["subpeso"] * 100, 0),
+        "FE_VEG_IMP": br(imp.loc["ferro_min", "vegetariano"]),
+        "CA_VEG_IMP": br(imp.loc["calcio_min", "vegetariano"]),
+        "FE_VGN_IMP": br(imp.loc["ferro_min", "vegano"]),
+        "CA_VGN_IMP": br(imp.loc["calcio_min", "vegano"]),
+        "PROT_ATL_IMP": br(imp.loc["proteina_min", "atleta"]),
+        "PIVOS_REF": str(int(e1[(e1.perfil == "referencia") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
+        "PIVOS_VGN": str(int(e1[(e1.perfil == "vegano") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
+        "PIVOS_CEL": str(int(e1[(e1.perfil == "celiaco") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
+        "PARETO_VGN_INI": br(par_v.dual.min(), 3), "PARETO_VGN_FIM": br(par_v.dual.max(), 3),
+        "PARETO_ATL_INI": br(par_a.dual.min(), 3), "PARETO_ATL_FIM": br(par_a.dual.max(), 3),
+        "PARETO_VGN_C0": br(par_v.custo.min()), "PARETO_VGN_C1": br(par_v.custo.max()),
+        "PARETO_VGN_P1": br(par_v.proteina.max(), 0),
     }
     pasta = Path(__file__).resolve().parent
     texto = (pasta / "artigo_modelo.tex").read_text(encoding="utf-8")
@@ -183,6 +262,6 @@ def preencher_texto():
 
 
 if __name__ == "__main__":
-    perfis(); custo_lp(); conflito(); duais(); inteiro(); tempos(); cardapio()
+    perfis(); custo_lp(); conflito(); duais(); impacto(); inteiro(); tempos(); cardapio()
     preencher_texto()
     print("tabelas e artigo.tex gerados em", OUT.parent)

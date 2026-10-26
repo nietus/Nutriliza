@@ -27,7 +27,7 @@ ALIMENTOS = carregar_alimentos()
 METODOS = {
     "simplex": "Simplex (PL contínua)",
     "branch_and_bound": "Branch and Bound (PL inteira)",
-    "genetico": "Algoritmo genético (inteiro)",
+    "genetico": "Algoritmo Genético (inteiro)",
 }
 TOL = 1e-6
 

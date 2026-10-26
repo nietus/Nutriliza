@@ -1,0 +1,18 @@
+% Gera os diagramas do artigo como páginas separadas, para virar PNG na documentação.
+% Uso: tectonic tikz/figuras_png.tex (de dentro de artigo/) e depois
+% python artigo/tikz/exportar_png.py
+\documentclass[border=4pt,multi=tikzpicture]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc,decorations.pathreplacing}
+\input{tikz/estilos}
+\begin{document}
+\input{tikz/visao}
+\input{tikz/simplex}
+\input{tikz/arvore_bb}
+\input{tikz/genetico}
+\input{tikz/cromossomo}
+\end{document}

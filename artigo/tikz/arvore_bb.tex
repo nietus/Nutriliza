@@ -1,0 +1,17 @@
+\begin{tikzpicture}[
+    no/.style={draw, rounded corners=2pt, align=center, font=\scriptsize, inner sep=2pt, fill=white, text width=28mm},
+    poda/.style={no, fill=black!7},
+    level distance=17mm,
+    level 1/.style={sibling distance=64mm},
+    level 2/.style={sibling distance=32mm},
+    edge from parent/.style={draw, -{Stealth[length=1.6mm]}, semithick}]
+  \node[no] {Raiz: relaxação linear\\$\bar{x}_j$ fracionária (ex.: 2,5)}
+    child {node[no] {Ramo $x_j \le 2$\\$\bar{x}_k$ fracionária}
+      child {node[no] {Ramo $x_k \ge \lceil \bar{x}_k \rceil$\\solução inteira:\\nova incumbente $Z^*$}}
+      child {node[poda] {Ramo $x_k \le \lfloor \bar{x}_k \rfloor$\\$Z \ge Z^*$: poda por limite}}
+    }
+    child {node[no] {Ramo $x_j \ge 3$\\$\bar{x}_l$ fracionária}
+      child {node[poda] {Ramo $x_l \le \lfloor \bar{x}_l \rfloor$\\inviável: poda}}
+      child {node[poda] {Ramo $x_l \ge \lceil \bar{x}_l \rceil$\\$Z \ge Z^*$: poda por limite}}
+    };
+\end{tikzpicture}

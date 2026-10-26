@@ -1,0 +1,20 @@
+\begin{tikzpicture}[node distance=5mm and 6mm]
+  \node[caixa, text width=27mm] (base) {Base de alimentos\\(TACO, 37 itens,\\9 nutrientes)};
+  \node[caixa, text width=27mm, below=of base] (perfil) {Perfil nutricional\\(limites $L_j$, $U_j$\\e exclusões)};
+  \node[caixa, text width=27mm, below=of perfil] (fo) {Função objetivo\\(7 critérios,\\ponderada, $\varepsilon$)};
+  \node[caixa, text width=26mm, right=9mm of perfil, minimum height=20mm] (modelo) {Modelo\\$\min c^\top x$\\$L \le Ax \le U$\\$0 \le x \le M$};
+  \node[caixa, text width=30mm, right=10mm of modelo] (bb) {Branch and Bound\\(inteiro, exato)};
+  \node[caixa, text width=30mm, above=7mm of bb] (sx) {Simplex de duas fases\\(contínuo)};
+  \node[caixa, text width=30mm, below=7mm of bb] (ag) {Algoritmo Genético\\(inteiro, heurístico)};
+  \node[caixa, text width=24mm, right=10mm of bb, minimum height=20mm] (saida) {Cardápio,\\preços-sombra\\e fronteiras\\de Pareto};
+  \draw[seta] (base.east) -| ($(modelo.west)+(-4mm,4mm)$) -- ($(modelo.west)+(0,4mm)$);
+  \draw[seta] (perfil.east) -- (modelo.west);
+  \draw[seta] (fo.east) -| ($(modelo.west)+(-4mm,-4mm)$) -- ($(modelo.west)+(0,-4mm)$);
+  \draw[seta] (modelo.east) -- ++(5mm,0) |- (sx.west);
+  \draw[seta] (modelo.east) -- (bb.west);
+  \draw[seta] (modelo.east) -- ++(5mm,0) |- (ag.west);
+  \draw[seta] (sx.east) -- ++(5mm,0) |- ($(saida.west)+(0,4mm)$);
+  \draw[seta] (bb.east) -- (saida.west);
+  \draw[seta] (ag.east) -- ++(5mm,0) |- ($(saida.west)+(0,-4mm)$);
+  \draw[seta, dashed] (sx.south) -- node[right, font=\scriptsize]{relaxações} (bb.north);
+\end{tikzpicture}

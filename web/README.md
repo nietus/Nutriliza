@@ -19,10 +19,15 @@ O gráfico de convergência usa Chart.js carregado do cdnjs, então precisa de i
 
 - Escolher **perfil**, **objetivo** e **método** (Simplex, Branch and Bound ou Algoritmo Genético).
 - Editar os **limites mínimo e máximo** de cada nutriente (já vêm preenchidos com os do perfil; campo em branco = sem limite).
-- **Otimizar**: mostra o cardápio do dia, os totais de nutrientes contra os limites, os preços-sombra (só no Simplex) e a curva de convergência (só no Algoritmo Genético).
+- **Otimizar**: mostra o cardápio do dia, os totais de nutrientes contra os limites, os preços-sombra com o impacto de cada restrição no ótimo (só no Simplex) e as curvas de convergência e de fração factível (só no Algoritmo Genético).
 - **Comparar métodos**: roda os três métodos sobre o modelo inteiro (o Simplex resolve a relaxação linear, que serve de limite) e mostra valor, diferença para o Branch and Bound, tempo e esforço.
 
-O Branch and Bound tem limite de 30 s e o Algoritmo Genético roda 500 gerações (cerca de 10 s), então a comparação pode levar uns 15 s.
+Cada método e cada bloco de resultado tem uma linha explicando o que mostra (para apresentar sem precisar
+de slide). Na tabela de nutrientes, **no mínimo / no máximo** marca as restrições ativas; na comparação, o
+melhor método inteiro fica destacado e o Simplex aparece como limite teórico. **Enter** em qualquer campo
+roda **Otimizar**; durante o cálculo os botões ficam desabilitados e um contador mostra os segundos.
+
+O Branch and Bound tem limite de 30 s, mas costuma resolver em cerca de 1 s; o Algoritmo Genético roda 500 gerações (uns 4 a 5 s), e a comparação leva uns 6 s.
 
 ## API
 

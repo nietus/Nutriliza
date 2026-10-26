@@ -1,0 +1,16 @@
+\begin{tikzpicture}[node distance=4mm and 8mm]
+  \node[caixa, text width=26mm] (pad) {Padronização\\(folgas, excessos,\\artificiais)};
+  \node[caixa, text width=24mm, right=of pad] (f1) {Fase 1\\$\min \sum$ artificiais};
+  \node[decisao, right=of f1] (viav) {Soma\\$= 0$?};
+  \node[caixa, text width=22mm, right=of viav] (f2) {Fase 2\\otimiza $c^\top x$};
+  \node[caixa, text width=22mm, right=of f2] (dual) {Ótimo $x^*$ e\\$B^\top y = c_B$};
+  \node[caixa, text width=22mm, below=6mm of viav] (inv) {Perfil inviável};
+  \node[caixa, text width=34mm, below=6mm of f2, xshift=8mm] (piv) {Pivô: entra custo reduzido\\mais negativo (Dantzig ou\\Bland), sai razão mínima};
+  \draw[seta] (pad) -- (f1);
+  \draw[seta] (f1) -- (viav);
+  \draw[seta] (viav) -- node[above, font=\scriptsize]{sim} (f2);
+  \draw[seta] (viav) -- node[right, font=\scriptsize]{não} (inv);
+  \draw[seta] (f2) -- node[above, font=\scriptsize]{ótimo} (dual);
+  \draw[seta] ($(f2.south)+(-3mm,0)$) -- ($(piv.north)+(-11mm,0)$);
+  \draw[seta] ($(piv.north)+(-5mm,0)$) -- ($(f2.south)+(3mm,0)$);
+\end{tikzpicture}

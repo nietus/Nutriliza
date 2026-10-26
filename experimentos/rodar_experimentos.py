@@ -74,6 +74,8 @@ def e1_linear(alim: pd.DataFrame) -> pd.DataFrame:
             ativas = [p.nomes_restr[i] for i in range(p.m) if abs(r.duais[i]) > 1e-7]
             linhas.append({"perfil": perfil, "objetivo": obj, "status": r.status,
                            "valor": r.valor, "valor_cbc": cbc.valor,
+                           "dif_valor_abs": abs(r.valor - cbc.valor),
+                           "dif_duais_abs": float(np.max(np.abs(r.duais - cbc.duais))),
                            "iteracoes": r.iteracoes, "tempo_ms": r.tempo * 1000,
                            "n_alimentos": int((r.x > 1e-6).sum()),
                            "restricoes_ativas": ";".join(ativas), **tot})
@@ -98,8 +100,10 @@ def e3_duais(alim: pd.DataFrame) -> pd.DataFrame:
         r = simplex.resolver(p)
         for i, nome in enumerate(p.nomes_restr):
             if abs(r.duais[i]) > 1e-7:
+                # impacto = preço-sombra x lado direito: parcela do custo ótimo
+                # atribuída à restrição (pela dualidade forte, a soma dá o custo)
                 linhas.append({"perfil": perfil, "restricao": nome, "rhs": p.b[i],
-                               "preco_sombra": r.duais[i]})
+                               "preco_sombra": r.duais[i], "impacto": r.duais[i] * p.b[i]})
     df = pd.DataFrame(linhas)
     salvar(df, "e3_duais_custo")
     return df
@@ -201,7 +205,9 @@ def e5_inteiro(alim: pd.DataFrame, sementes: int) -> tuple[pd.DataFrame, dict]:
                 "ga_otimo_pct": float(np.mean(np.abs(ga - otimo) <= 1e-6 * max(1, abs(otimo)))) * 100,
                 "ga_gap_medio_pct": float(np.nanmean((ga - otimo) / abs(otimo))) * 100,
                 "ga_tempo_s": float(np.mean(ga_tempos)),
-                "gap_integralidade_pct": (bb.valor - lp.valor) / abs(bb.valor) * 100,
+                "ga_pior_gap_pct": float((np.nanmax(ga) - otimo) / abs(otimo)) * 100,
+                # quanto o ótimo inteiro piora em relação à relaxação linear
+                "gap_integralidade_pct": (bb.valor - lp.valor) / abs(lp.valor) * 100,
             })
             print(f"  {perfil:20s}{obj:7s} LP={lp.valor:9.3f} B&B={bb.valor:9.3f} "
                   f"({bb.extra['nos']} nós, {bb.tempo:.1f}s) CBC={cbc.valor:9.3f} "

@@ -74,6 +74,12 @@ print(r.valor, cardapio(alim, r.x))
 
 ## Artigo
 
+O texto do artigo fica em `artigo/artigo_modelo.tex`; `python artigo/gerar_tabelas.py`
+preenche os números a partir de `resultados/` e grava `artigo/artigo.tex` e `artigo/tabelas/`.
+Os diagramas (metodologia, Simplex, árvore do Branch and Bound, fluxo e cromossomo do
+Genético) estão em TikZ em `artigo/tikz/`; `artigo/tikz/figuras_png.tex` +
+`artigo/tikz/exportar_png.py` geram as versões PNG usadas na documentação.
+
 `artigo/artigo.tex` usa o template oficial da SBC (`sbc-template.sty` e `sbc.bst`).
 Para compilar: `pdflatex artigo && bibtex artigo && pdflatex artigo && pdflatex artigo`
 dentro de `artigo/`, ou suba a pasta `artigo/` junto com `figuras/` no Overleaf

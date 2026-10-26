@@ -1,0 +1,18 @@
+\begin{tikzpicture}[node distance=4mm and 5mm]
+  \node[caixa] (ini) {População\\inicial};
+  \node[caixa, right=of ini] (aval) {Avaliação\\($f$, violação)};
+  \node[caixa, right=of aval] (bl) {Busca local\\na elite};
+  \node[decisao, right=of bl] (lim) {Limite de\\gerações?};
+  \node[caixa, right=of lim] (fim) {Melhor\\dieta};
+  \node[caixa] (sel) at ($(lim)+(0,-17mm)$) {Seleção\\(torneio de Deb)};
+  \node[caixa] (cruz) at ($(bl)+(0,-17mm)$) {Cruzamento\\uniforme};
+  \node[caixa] (mut) at ($(aval)+(0,-17mm)$) {Mutação\\$\pm 1$ porção};
+  \draw[seta] (ini) -- (aval);
+  \draw[seta] (aval) -- (bl);
+  \draw[seta] (bl) -- (lim);
+  \draw[seta] (lim) -- node[above, font=\scriptsize]{sim} (fim);
+  \draw[seta] (lim) -- node[right, font=\scriptsize]{não} (sel);
+  \draw[seta] (sel) -- (cruz);
+  \draw[seta] (cruz) -- (mut);
+  \draw[seta] (mut) -- node[left, font=\scriptsize, align=right]{nova geração\\+ elite} (aval);
+\end{tikzpicture}

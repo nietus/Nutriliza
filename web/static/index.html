@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nutriliza · Otimização de dietas</title>
-<link rel="stylesheet" href="/static/estilo.css?v=2">
+<link rel="stylesheet" href="/static/estilo.css?v=4">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
@@ -14,78 +14,108 @@
 </header>
 
 <main>
-  <section class="painel" id="config">
+  <form class="painel" id="config" novalidate>
     <h2>Configuração</h2>
     <div class="campos">
       <label>Perfil
         <select id="perfil"></select>
       </label>
+      <p id="perfil-desc" class="dica"></p>
       <label>Objetivo
         <select id="objetivo"></select>
       </label>
       <label>Método
         <select id="metodo"></select>
       </label>
+      <p id="metodo-desc" class="dica"></p>
     </div>
-    <p id="perfil-desc" class="dica"></p>
 
-    <details open>
-      <summary>Limites diários por nutriente <span class="dica">(deixe em branco para sem limite)</span></summary>
-      <table class="limites">
-        <thead><tr><th>Nutriente</th><th>Mínimo</th><th>Máximo</th><th>Unid.</th></tr></thead>
-        <tbody id="limites"></tbody>
-      </table>
+    <details>
+      <summary>Limites diários por nutriente <span class="dica">(opcional; já vêm do perfil)</span></summary>
+      <p class="dica">Campo em branco = sem limite. Valores alterados ficam em amarelo.</p>
+      <div class="rolagem">
+        <table class="limites">
+          <thead><tr><th>Nutriente</th><th>Mínimo</th><th>Máximo</th><th>Unid.</th></tr></thead>
+          <tbody id="limites"></tbody>
+        </table>
+      </div>
       <button type="button" class="sec" id="restaurar">Restaurar limites do perfil</button>
     </details>
 
     <div class="acoes">
-      <button id="otimizar">Otimizar</button>
-      <button id="comparar" class="sec">Comparar métodos</button>
+      <button type="submit" id="otimizar">Otimizar</button>
+      <button type="button" id="comparar" class="sec">Comparar métodos</button>
     </div>
-  </section>
+    <p class="dica atalho"><b>Otimizar</b> resolve com o método escolhido (Enter também funciona).
+      <b>Comparar métodos</b> roda os três lado a lado.</p>
+  </form>
 
   <section id="saida">
-    <div id="carregando" class="painel oculto"><span class="spin"></span> <span id="carregando-txt">Resolvendo…</span></div>
-    <div id="erro" class="painel erro oculto"></div>
+    <div id="vazio" class="painel vazio">
+      <h2>Como usar</h2>
+      <ol>
+        <li>Escolha o <b>perfil</b> (as restrições nutricionais vêm dele) e o <b>objetivo</b> (o que minimizar ou maximizar).</li>
+        <li>Escolha o <b>método</b> e clique em <b>Otimizar</b> para ver o cardápio do dia, os nutrientes e os detalhes do método.</li>
+        <li>Ou clique em <b>Comparar métodos</b> para ver Simplex, Branch and Bound e Algoritmo Genético no mesmo problema.</li>
+      </ol>
+      <p class="dica">O Simplex responde na hora; o Branch and Bound costuma levar cerca de 1 s, o Algoritmo Genético uns 4 a 5 s e a comparação uns 6 s.</p>
+    </div>
+
+    <div id="carregando" class="painel oculto" role="status" aria-live="polite"><span class="spin"></span> <span id="carregando-txt">Resolvendo…</span></div>
+    <div id="erro" class="painel erro oculto" role="alert"></div>
 
     <div id="res" class="oculto">
       <section class="painel">
         <h2 id="res-titulo">Resultado</h2>
+        <p id="res-resumo" class="explica"></p>
         <div class="kpis" id="kpis"></div>
       </section>
 
       <section class="painel">
         <h2>Cardápio do dia</h2>
-        <table id="cardapio" class="dados"></table>
+        <p class="explica">Quantas porções de cada alimento o método escolheu. Alimentos fora da lista ficaram com zero.</p>
+        <div class="rolagem"><table id="cardapio" class="dados"></table></div>
       </section>
 
       <section class="painel">
         <h2>Nutrientes: total × limites</h2>
-        <table id="totais" class="dados"></table>
+        <p class="explica">A faixa verde-clara é o intervalo permitido e o traço é o total do cardápio.
+          <span class="selo ativa">no mínimo</span> ou <span class="selo ativa">no máximo</span> indica restrição <b>ativa</b>: o total encostou no mínimo ou no máximo, e é ela que “segura” a solução.</p>
+        <div class="rolagem"><table id="totais" class="dados"></table></div>
       </section>
 
       <section class="painel" id="bloco-precos">
-        <h2>Preços-sombra (restrições ativas)</h2>
-        <p class="dica">Quanto o valor ótimo muda por unidade a mais no lado direito da restrição.</p>
-        <table id="precos" class="dados"></table>
+        <h2>Preços-sombra</h2>
+        <p class="explica">O preço-sombra diz quanto a função objetivo mudaria se uma restrição ativa fosse afrouxada ou apertada em 1 unidade.
+          Só aparecem as restrições que realmente limitam a solução; as demais têm preço-sombra zero. O impacto (preço × limite) mostra quanto cada uma pesa no total: um preço pequeno por unidade pode somar muito.</p>
+        <p id="precos-exemplo" class="destaque-txt"></p>
+        <div class="rolagem"><table id="precos" class="dados"></table></div>
       </section>
 
       <section class="painel" id="bloco-curva">
-        <h2>Convergência do algoritmo genético</h2>
-        <div class="grafico"><canvas id="curva"></canvas></div>
+        <h2>Convergência do Algoritmo Genético</h2>
+        <p class="explica">Melhor cardápio factível encontrado até cada geração. A curva cai rápido no começo e depois estabiliza.</p>
+        <div class="grafico"><canvas id="curva" aria-label="Melhor valor factível por geração"></canvas></div>
+        <h3>Fração da população factível</h3>
+        <p class="explica">Parte dos indivíduos de cada geração que atende a todas as restrições (0 = nenhum, 1 = todos).</p>
+        <div class="grafico baixo"><canvas id="curva-frac" aria-label="Fração da população factível por geração"></canvas></div>
       </section>
     </div>
 
     <div id="cmp" class="oculto">
       <section class="painel">
         <h2 id="cmp-titulo">Comparação de métodos</h2>
-        <p class="dica">Todos sobre o modelo inteiro (porções inteiras); o Simplex resolve a relaxação linear, que dá o limite teórico.</p>
-        <table id="cmp-tabela" class="dados"></table>
+        <p class="explica">Os três métodos resolvem o mesmo modelo com porções inteiras. O Simplex resolve a versão contínua (relaxação linear),
+          que permite frações de porção: o valor dele é o limite teórico que nenhum cardápio inteiro consegue superar.</p>
+        <div class="rolagem"><table id="cmp-tabela" class="dados"></table></div>
+        <p class="explica"><b>Dif. ao B&amp;B</b>: distância percentual ao valor do Branch and Bound, que é o ótimo inteiro exato.
+          0 % é o ótimo; no Algoritmo Genético, quanto mais perto de 0 %, melhor a heurística.</p>
+        <p id="cmp-conclusao" class="destaque-txt"></p>
       </section>
     </div>
   </section>
 </main>
 <footer>Trabalho acadêmico · limites didáticos, não substituem um nutricionista.</footer>
-<script src="/static/app.js?v=2"></script>
+<script src="/static/app.js?v=4"></script>
 </body>
 </html>

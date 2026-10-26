@@ -1,12 +1,26 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 let OPC = null;
-let grafico = null;
+let graficos = [];
+let relogio = null;
 
 const UNID_OBJ = { custo: "R$", calorias: "kcal", proteina: "g", fibra: "g", sodio: "mg", gordura: "g", massa: "g" };
 const STATUS = {
   otimo: ["Ótimo", "ok"], factivel: ["Factível", "ok"], infactivel: ["Infactível", "ruim"],
   inviavel: ["Inviável", "ruim"], limite: ["Limite atingido", "ruim"], ilimitado: ["Ilimitado", "ruim"],
+};
+// uma linha sobre cada método: o que faz, contínuo × inteiro, exato × heurístico
+const DESC_METODO = {
+  simplex: "Programação linear contínua: aceita frações de porção. Método exato e muito rápido; também dá os preços-sombra.",
+  branch_and_bound: "Programação linear inteira: só porções inteiras. Divide o problema em ramos e usa o Simplex como limite; exato, mas mais lento.",
+  genetico: "Heurística inspirada na evolução: uma população de cardápios inteiros se recombina e sofre mutações. Rápida, mas sem garantia de ótimo.",
+};
+const TIPO_METODO = {
+  simplex: "contínuo · exato", branch_and_bound: "inteiro · exato", genetico: "inteiro · heurístico",
+};
+const TEMPO_METODO = {
+  simplex: "", branch_and_bound: " (costuma levar cerca de 1 s; limite de 30 s)",
+  genetico: " (leva uns 4 a 5 s)",
 };
 
 const fmt = (v, d = 2) => v == null ? "—" :
@@ -15,14 +29,20 @@ const fmtObj = (v, obj) => v == null ? "—" :
   (UNID_OBJ[obj] === "R$" ? "R$ " + fmt(v) : fmt(v, 1) + " " + (UNID_OBJ[obj] || ""));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const selo = (st) => { const [t, c] = STATUS[st] || [st, "ruim"]; return `<span class="selo ${c}">${t}</span>`; };
-const seloOk = (ok) => ok ? '<span class="selo ok">ok</span>' : '<span class="selo ruim">violado</span>';
+const fmtTempo = (t) => t == null ? "—" : t < 1 ? fmt(t * 1000, 1) + " ms" : fmt(t, 2) + " s";
+const objAtual = () => OPC.objetivos.find((o) => o.id === $("objetivo").value);
 
 function nomeRestricao(nome) {
-  if (nome === "frutas_hortalicas_min") return "Frutas e hortaliças (mín. 400 g)";
+  if (nome === "frutas_hortalicas_min") return "Frutas e hortaliças (mínimo)";
   const m = nome.match(/^(.*)_(min|max)$/);
   if (!m) return nome;
   const nut = OPC.nutrientes.find((n) => n.id === m[1]);
   return `${nut ? nut.rotulo : m[1]} (${m[2] === "min" ? "mínimo" : "máximo"})`;
+}
+function unidRestricao(nome) {
+  if (nome === "frutas_hortalicas_min") return "g";
+  const nut = OPC.nutrientes.find((n) => nome.startsWith(n.id + "_"));
+  return nut ? nut.unidade : "";
 }
 
 async function api(url, corpo) {
@@ -54,6 +74,8 @@ function preencherLimites() {
   }).join("");
 }
 
+function descreverMetodo() { $("metodo-desc").textContent = DESC_METODO[$("metodo").value] || ""; }
+
 function lerLimites() {
   const lim = {};
   for (const inp of document.querySelectorAll("#limites input")) {
@@ -64,48 +86,83 @@ function lerLimites() {
   return lim;
 }
 
-function ocupado(sim, txt) {
+// liga/desliga o estado "ocupado": botões desabilitados e contador de segundos
+function ocupado(sim, txt, nota = "") {
+  clearInterval(relogio);
   $("carregando").classList.toggle("oculto", !sim);
-  $("carregando-txt").textContent = txt || "Resolvendo…";
   $("otimizar").disabled = $("comparar").disabled = sim;
-  if (sim) $("erro").classList.add("oculto");
+  $("config").setAttribute("aria-busy", sim ? "true" : "false");
+  if (!sim) return;
+  $("erro").classList.add("oculto");
+  $("vazio").classList.add("oculto");
+  rolarAte($("carregando"));
+  const t0 = Date.now();
+  const tique = () => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    $("carregando-txt").textContent = `${txt}… ${s} s${nota}`;
+  };
+  tique();
+  relogio = setInterval(tique, 1000);
+}
+
+// em tela estreita os resultados ficam abaixo do formulário: rola só se o bloco estiver fora de vista
+function rolarAte(el) {
+  const r = el.getBoundingClientRect();
+  if (r.top > innerHeight * 0.5 || r.bottom < 0) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// depois de terminar (aviso de progresso já escondido), mostra o resultado ou o erro
+function rolarAoResultado() {
+  const el = ["erro", "res", "cmp"].map($).find((e) => !e.classList.contains("oculto"));
+  if (el) rolarAte(el);
 }
 
 function mostrarErro(msg) { $("erro").textContent = msg; $("erro").classList.remove("oculto"); }
 
 async function otimizar() {
+  if ($("otimizar").disabled) return;
   const metodo = $("metodo").value;
-  ocupado(true, metodo === "simplex" ? "Resolvendo…"
-    : "Resolvendo… (Branch and Bound e Algoritmo Genético podem levar alguns segundos)");
+  ocupado(true, `Resolvendo com ${OPC.metodos.find((m) => m.id === metodo).rotulo}`, TEMPO_METODO[metodo]);
   $("cmp").classList.add("oculto");
+  $("res").classList.add("oculto");
   try {
     const d = await api("/api/resolver", { perfil: $("perfil").value, objetivo: $("objetivo").value, metodo, limites: lerLimites() });
     renderResultado(d);
   } catch (e) {
     mostrarErro(e.message);
-    $("res").classList.add("oculto");
   } finally {
     ocupado(false);
+    rolarAoResultado();
   }
 }
 
-function kpi(r, v) { return `<div class="kpi"><div class="r">${r}</div><div class="v">${v}</div></div>`; }
+function kpi(r, v, t) {
+  return `<div class="kpi"${t ? ` title="${esc(t)}"` : ""}><div class="r">${r}</div><div class="v">${v}</div></div>`;
+}
 
 function renderResultado(d) {
   const obj = $("objetivo").value;
   $("res").classList.remove("oculto");
   $("res-titulo").innerHTML = `${esc(d.metodo_rotulo)} <span class="dica">· ${esc(d.descricao)}</span>`;
-  const k = [kpi("Status", selo(d.status)), kpi("Função objetivo", fmtObj(d.valor, obj)),
-             kpi("Tempo", d.tempo < 1 ? fmt(d.tempo * 1000, 1) + " ms" : fmt(d.tempo, 2) + " s")];
+  const resumo = {
+    simplex: "Ótimo da versão contínua: as porções podem ser fracionárias.",
+    branch_and_bound: d.status === "otimo" ? "Ótimo inteiro comprovado: nenhum cardápio com porções inteiras é melhor."
+      : "O tempo limite acabou antes de provar o ótimo; o gap mostra a distância máxima até ele.",
+    genetico: "Melhor cardápio inteiro encontrado pela heurística; pode não ser o ótimo (compare com o Branch and Bound).",
+  }[d.metodo] || "";
+  $("res-resumo").textContent = resumo;
+
+  const k = [kpi("Status", selo(d.status)), kpi(esc(objAtual().rotulo), fmtObj(d.valor, obj)),
+             kpi("Tempo", fmtTempo(d.tempo))];
   if (d.custo != null && obj !== "custo") k.push(kpi("Custo diário", "R$ " + fmt(d.custo)));
-  if (d.metodo === "simplex") k.push(kpi("Iterações (pivôs)", d.iteracoes));
+  if (d.metodo === "simplex") k.push(kpi("Iterações (pivôs)", d.iteracoes, "Trocas de base feitas pelo Simplex"));
   if (d.metodo === "branch_and_bound") {
-    k.push(kpi("Nós explorados", d.nos ?? "—"));
-    k.push(kpi("Gap", d.gap == null ? "—" : fmt(d.gap * 100, 2) + " %"));
+    k.push(kpi("Nós explorados", d.nos ?? "—", "Subproblemas resolvidos na árvore de busca"));
+    k.push(kpi("Gap", d.gap == null ? "—" : fmt(d.gap * 100, 2) + " %", "Distância entre a melhor solução e o limite; 0 % = ótimo provado"));
   }
   if (d.metodo === "genetico") {
     k.push(kpi("Gerações", d.iteracoes));
-    k.push(kpi("Violação", fmt(d.violacao, 4)));
+    k.push(kpi("Violação", fmt(d.violacao, 4), "Soma do quanto as restrições foram desrespeitadas; 0 = factível"));
   }
   if (d.n_alimentos != null) k.push(kpi("Alimentos", d.n_alimentos));
   if (d.massa != null) k.push(kpi("Massa total", fmt(d.massa, 0) + " g"));
@@ -121,7 +178,7 @@ function renderResultado(d) {
   }
 
   $("bloco-precos").classList.toggle("oculto", !d.precos_sombra);
-  if (d.precos_sombra) renderPrecos(d.precos_sombra, obj);
+  if (d.precos_sombra) renderPrecos(d.precos_sombra, obj, d.sentido);
 
   $("bloco-curva").classList.toggle("oculto", !d.curva);
   if (d.curva) renderCurva(d.curva, obj);
@@ -144,77 +201,106 @@ function trilho(v, lo, hi, ok) {
   const topo = Math.max(hi ?? (lo ?? v) * 1.5, v, lo ?? 0) * 1.1 || 1;
   const pct = (x) => Math.min(100, Math.max(0, (x / topo) * 100));
   const a = pct(lo ?? 0), b = hi == null ? 100 : pct(hi);
-  return `<div class="trilho"><div class="faixa" style="left:${a}%;width:${b - a}%"></div>
+  return `<div class="trilho" aria-hidden="true"><div class="faixa" style="left:${a}%;width:${b - a}%"></div>
     <div class="marca ${ok ? "" : "ruim"}" style="left:${pct(v)}%"></div></div>`;
 }
 
+// restrição ativa = total igual ao limite (tolerância relativa pequena)
+const encosta = (v, lim) => lim != null && Math.abs(v - lim) <= 1e-3 * Math.max(1, Math.abs(lim));
+
+function situacao(v, lo, hi, ok) {
+  if (!ok) return '<span class="selo ruim">violado</span>';
+  if (encosta(v, lo)) return '<span class="selo ativa">no mínimo</span>';
+  if (encosta(v, hi)) return '<span class="selo ativa">no máximo</span>';
+  return '<span class="selo ok">ok</span>';
+}
+
 function renderTotais(tot, fh) {
-  const linhas = tot.map((t) => `<tr><td>${esc(t.rotulo)}</td><td class="n">${fmt(t.valor, 1)} ${esc(t.unidade)}</td>
-    <td class="n">${t.min == null ? "—" : fmt(t.min, 0)}</td><td class="n">${t.max == null ? "—" : fmt(t.max, 0)}</td>
-    <td class="col-trilho">${trilho(t.valor, t.min, t.max, t.ok)}</td><td>${seloOk(t.ok)}</td></tr>`);
-  if (fh != null) {
-    const ok = fh >= 400 - 1e-3;
-    linhas.push(`<tr><td>Frutas e hortaliças</td><td class="n">${fmt(fh, 0)} g</td><td class="n">400</td><td class="n">—</td>
-      <td class="col-trilho">${trilho(fh, 400, null, ok)}</td><td>${seloOk(ok)}</td></tr>`);
-  }
+  const linha = (rot, v, unid, lo, hi, ok) => {
+    const ativa = ok && (encosta(v, lo) || encosta(v, hi));
+    return `<tr class="${ativa ? "ativa" : ""}"><td>${esc(rot)}</td><td class="n">${fmt(v, 1)} ${esc(unid)}</td>
+      <td class="n">${lo == null ? "—" : fmt(lo, 0)}</td><td class="n">${hi == null ? "—" : fmt(hi, 0)}</td>
+      <td class="col-trilho">${trilho(v, lo, hi, ok)}</td><td>${situacao(v, lo, hi, ok)}</td></tr>`;
+  };
+  const linhas = tot.map((t) => linha(t.rotulo, t.valor, t.unidade, t.min, t.max, t.ok));
+  if (fh != null) linhas.push(linha("Frutas e hortaliças", fh, "g", 400, null, fh >= 400 - 1e-3));
   $("totais").innerHTML = `<thead><tr><th>Nutriente</th><th class="n">Total</th><th class="n">Mín.</th><th class="n">Máx.</th>
     <th>Faixa permitida</th><th>Situação</th></tr></thead><tbody>${linhas.join("")}</tbody>`;
 }
 
-function renderPrecos(precos, obj) {
+function renderPrecos(precos, obj, sentido) {
   const u = UNID_OBJ[obj] || "";
+  const fmtU = (v, d = 4) => u === "R$" ? "R$ " + fmt(Math.abs(v), d) : fmt(Math.abs(v), d) + " " + u;
   if (!precos.length) {
+    $("precos-exemplo").textContent = "";
     $("precos").innerHTML = `<tbody><tr><td class="dica">Nenhuma restrição ativa com preço-sombra não nulo.</td></tr></tbody>`;
     return;
   }
-  precos.sort((a, b) => Math.abs(b.preco_sombra) - Math.abs(a.preco_sombra));
+  // impacto = preço-sombra × lado direito: mostra quais restrições pesam mais no valor ótimo
+  for (const p of precos) p.impacto = p.preco_sombra * (p.rhs ?? 0);
+  precos.sort((a, b) => Math.abs(b.impacto) - Math.abs(a.impacto));
+  const p0 = precos[0];
+  const un0 = unidRestricao(p0.restricao);
+  const piora = (sentido === "min") === (p0.preco_sombra > 0);
+  $("precos-exemplo").innerHTML = `Exemplo: a restrição que mais pesa é <b>${esc(nomeRestricao(p0.restricao))}</b>.
+    Cada ${esc(un0)} a mais no limite ${p0.preco_sombra > 0 ? "aumenta" : "diminui"} o valor ótimo em só ${fmtU(p0.preco_sombra)},
+    mas o limite é ${fmt(p0.rhs, 0)} ${esc(un0)}: ${fmtU(p0.preco_sombra)} × ${fmt(p0.rhs, 0)} ≈ <b>${fmtU(p0.impacto, 2)}</b>
+    de impacto no ótimo${piora ? " (afrouxar esse limite melhoraria a dieta)" : ""}.`;
+
   const corpo = precos.map((p) => `<tr><td>${esc(nomeRestricao(p.restricao))}</td>
-    <td class="n">${p.sentido === ">=" ? "≥" : p.sentido === "<=" ? "≤" : "="} ${fmt(p.rhs, 1)}</td>
-    <td class="n">${fmt(p.lhs, 1)}</td><td class="n">${fmt(p.preco_sombra, 4)}</td></tr>`).join("");
-  $("precos").innerHTML = `<thead><tr><th>Restrição</th><th class="n">Lado direito</th><th class="n">Valor na solução</th>
-    <th class="n">Preço-sombra (${esc(u)} por unidade)</th></tr></thead><tbody>${corpo}</tbody>`;
+    <td class="n">${p.sentido === ">=" ? "≥" : p.sentido === "<=" ? "≤" : "="} ${fmt(p.rhs, 1)} ${esc(unidRestricao(p.restricao))}</td>
+    <td class="n">${p.preco_sombra > 0 ? "+" : "−"}${fmtU(p.preco_sombra)}</td>
+    <td class="n"><b>${p.impacto > 0 ? "+" : "−"}${fmtU(p.impacto, 2)}</b></td></tr>`).join("");
+  $("precos").innerHTML = `<thead><tr><th>Restrição ativa</th><th class="n">Limite</th>
+    <th class="n">Efeito de +1 unidade no limite</th><th class="n">Impacto no ótimo (preço × limite)</th></tr></thead><tbody>${corpo}</tbody>`;
 }
 
-function renderCurva(curva, obj) {
-  if (grafico) { grafico.destroy(); grafico = null; }
-  if (typeof Chart === "undefined") {
-    $("bloco-curva").querySelector(".grafico").innerHTML = '<p class="dica">Chart.js não carregou (sem internet?).</p>';
-    return;
-  }
-  grafico = new Chart($("curva"), {
+function graficoLinha(canvas, curva, campo, cor, rotuloY, extraY) {
+  return new Chart(canvas, {
     type: "line",
     data: {
       labels: curva.map((c) => c.geracao),
-      datasets: [
-        { label: `Melhor valor factível (${UNID_OBJ[obj] || ""})`, data: curva.map((c) => c.melhor),
-          borderColor: "#2f7a4f", backgroundColor: "#2f7a4f", pointRadius: 0, borderWidth: 2, yAxisID: "y" },
-        { label: "Fração da população factível", data: curva.map((c) => c.frac_factivel),
-          borderColor: "#c58b1b", backgroundColor: "#c58b1b", pointRadius: 0, borderWidth: 1.5, borderDash: [4, 3], yAxisID: "y2" },
-      ],
+      datasets: [{ label: rotuloY, data: curva.map((c) => c[campo]), borderColor: cor, backgroundColor: cor,
+                   pointRadius: 0, borderWidth: 2 }],
     },
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
       interaction: { mode: "index", intersect: false },
+      plugins: { legend: { display: false } },
       scales: {
-        x: { title: { display: true, text: "Geração" }, ticks: { maxTicksLimit: 10 } },
-        y: { title: { display: true, text: "Função objetivo" } },
-        y2: { position: "right", min: 0, max: 1, grid: { drawOnChartArea: false }, title: { display: true, text: "Fração factível" } },
+        x: { title: { display: true, text: "Geração" }, ticks: { maxTicksLimit: 8 } },
+        y: { title: { display: true, text: rotuloY }, ...extraY },
       },
     },
   });
 }
 
+function renderCurva(curva, obj) {
+  graficos.forEach((g) => g.destroy());
+  graficos = [];
+  if (typeof Chart === "undefined") {
+    for (const el of $("bloco-curva").querySelectorAll(".grafico"))
+      el.innerHTML = '<p class="dica">Chart.js não carregou (sem internet?).</p>';
+    return;
+  }
+  const u = UNID_OBJ[obj] || "";
+  graficos.push(graficoLinha($("curva"), curva, "melhor", "#2f7a4f", `Melhor valor (${u})`, {}));
+  graficos.push(graficoLinha($("curva-frac"), curva, "frac_factivel", "#8a5a00", "Fração factível", { min: 0, max: 1 }));
+}
+
 async function comparar() {
-  ocupado(true, "Comparando os métodos… (pode levar uns 15 segundos)");
+  if ($("comparar").disabled) return;
+  ocupado(true, "Comparando os três métodos", " (leva uns 6 s)");
   $("res").classList.add("oculto");
+  $("cmp").classList.add("oculto");
   try {
     const d = await api("/api/comparar", { perfil: $("perfil").value, objetivo: $("objetivo").value, limites: lerLimites() });
     renderComparacao(d);
   } catch (e) {
     mostrarErro(e.message);
-    $("cmp").classList.add("oculto");
   } finally {
     ocupado(false);
+    rolarAoResultado();
   }
 }
 
@@ -224,17 +310,48 @@ function esforco(m) {
   return `${m.iteracoes} pivôs`;
 }
 
+function difBB(m) {
+  if (m.dif_bb_pct == null) return "—";
+  if (m.metodo === "branch_and_bound") return "0 % (referência)";
+  return (m.dif_bb_pct >= 0 ? "+" : "−") + fmt(Math.abs(m.dif_bb_pct), 2) + " %";
+}
+
 function renderComparacao(d) {
   const obj = $("objetivo").value;
   $("cmp").classList.remove("oculto");
   $("cmp-titulo").innerHTML = `Comparação de métodos <span class="dica">· ${esc(d.descricao)}</span>`;
-  const linhas = d.metodos.map((m) => `<tr class="${m.metodo === "branch_and_bound" ? "destaque" : ""}">
-    <td>${esc(m.metodo_rotulo)}</td><td>${selo(m.status)}</td><td class="n">${fmtObj(m.valor, obj)}</td>
-    <td class="n">${m.dif_bb_pct == null ? "—" : (m.dif_bb_pct >= 0 ? "+" : "") + fmt(m.dif_bb_pct, 2) + " %"}</td>
-    <td class="n">${fmt(m.tempo, 3)} s</td><td class="n">${esforco(m)}</td>
-    <td class="n">${m.n_alimentos ?? "—"}</td><td class="n">${m.custo == null ? "—" : "R$ " + fmt(m.custo)}</td></tr>`).join("");
-  $("cmp-tabela").innerHTML = `<thead><tr><th>Método</th><th>Status</th><th class="n">Valor</th><th class="n">Dif. ao B&amp;B</th>
-    <th class="n">Tempo</th><th class="n">Esforço</th><th class="n">Alimentos</th><th class="n">Custo</th></tr></thead><tbody>${linhas}</tbody>`;
+  // melhor valor entre os métodos inteiros factíveis (o Simplex é só o limite)
+  const inteiros = d.metodos.filter((m) => m.metodo !== "simplex" && m.valor != null && m.factivel);
+  const melhor = inteiros.length ? (d.sentido === "min" ? Math.min : Math.max)(...inteiros.map((m) => m.valor)) : null;
+  const linhas = d.metodos.map((m) => {
+    const eMelhor = m.metodo !== "simplex" && melhor != null && m.factivel && Math.abs(m.valor - melhor) < 1e-6;
+    const marca = m.metodo === "simplex" ? '<span class="selo limite">limite teórico</span>'
+      : eMelhor ? '<span class="selo ok">melhor inteiro</span>' : "";
+    return `<tr class="${eMelhor ? "destaque" : ""}">
+      <td class="metodo"><b>${esc(m.metodo_rotulo)}</b><br><span class="dica">${TIPO_METODO[m.metodo] || ""}</span> ${marca}</td>
+      <td>${selo(m.status)}</td><td class="n"><b>${fmtObj(m.valor, obj)}</b></td>
+      <td class="n">${difBB(m)}</td><td class="n">${fmtTempo(m.tempo)}</td><td class="n">${esforco(m)}</td>
+      <td class="n">${m.n_alimentos ?? "—"}</td>${obj === "custo" ? "" : `<td class="n">${m.custo == null ? "—" : "R$ " + fmt(m.custo)}</td>`}</tr>`;
+  }).join("");
+  $("cmp-tabela").innerHTML = `<thead><tr><th>Método</th><th>Status</th><th class="n">${esc(d.objetivo)}</th>
+    <th class="n">Dif. ao B&amp;B</th><th class="n">Tempo</th><th class="n">Esforço</th><th class="n">Alimentos</th>
+    ${obj === "custo" ? "" : '<th class="n">Custo</th>'}</tr></thead><tbody>${linhas}</tbody>`;
+
+  const [lp, bb, ga] = ["simplex", "branch_and_bound", "genetico"].map((id) => d.metodos.find((m) => m.metodo === id));
+  const partes = [];
+  if (bb && bb.valor != null && lp && lp.valor != null) {
+    // relativo ao valor contínuo (Simplex), não ao B&B
+    const dl = lp.valor === 0 ? 0 : Math.abs((bb.valor - lp.valor) / Math.abs(lp.valor) * 100);
+    partes.push(dl < 0.005 ? "Exigir porções inteiras não mudou o valor em relação à versão contínua (Simplex)."
+      : `Exigir porções inteiras piora o valor em ${fmt(dl, 2)} % em relação à versão contínua (Simplex).`);
+  }
+  if (ga && ga.dif_bb_pct != null && bb && bb.tempo != null && ga.tempo != null) {
+    const dg = Math.abs(ga.dif_bb_pct);
+    partes.push((dg < 0.005 ? "O Algoritmo Genético encontrou o mesmo valor ótimo inteiro"
+      : `O Algoritmo Genético ficou a ${fmt(dg, 2)} % do ótimo inteiro`)
+      + ` em ${fmtTempo(ga.tempo)}, contra ${fmtTempo(bb.tempo)} do Branch and Bound.`);
+  }
+  $("cmp-conclusao").textContent = partes.join(" ");
 }
 
 async function iniciar() {
@@ -248,22 +365,27 @@ async function iniciar() {
   opcoesSelect($("objetivo"), OPC.objetivos, "rotulo");
   opcoesSelect($("metodo"), OPC.metodos, "rotulo");
   preencherLimites();
+  descreverMetodo();
   $("perfil").addEventListener("change", preencherLimites);
+  $("metodo").addEventListener("change", descreverMetodo);
   $("restaurar").addEventListener("click", preencherLimites);
   $("limites").addEventListener("input", (e) => {
     const i = e.target;
     i.classList.toggle("mudou", i.value !== i.dataset.padrao);
   });
-  $("otimizar").addEventListener("click", otimizar);
+  // Enter em qualquer campo (ou o botão Otimizar) envia o formulário
+  $("config").addEventListener("submit", (e) => { e.preventDefault(); otimizar(); });
   $("comparar").addEventListener("click", comparar);
 
   // ?perfil=atleta&objetivo=custo&metodo=simplex&executar=otimizar|comparar
   // abre a página já com um resultado (útil para apresentar)
   const q = new URLSearchParams(location.search);
   for (const campo of ["perfil", "objetivo", "metodo"]) {
-    if (q.has(campo)) $(campo).value = q.get(campo);
+    // valor inválido na URL é ignorado (fica o padrão)
+    if (q.has(campo) && [...$(campo).options].some((o) => o.value === q.get(campo))) $(campo).value = q.get(campo);
   }
-  if (q.has("perfil")) preencherLimites();
+  preencherLimites();
+  descreverMetodo();
   if (q.get("executar") === "otimizar") otimizar();
   if (q.get("executar") === "comparar") comparar();
 }

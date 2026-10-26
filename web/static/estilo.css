@@ -15,13 +15,12 @@ main > * { min-width: 0; }  /* tabelas largas rolam dentro do painel, não a pá
 @media (max-width: 900px) {
   main { grid-template-columns: 1fr; padding: 12px 16px; }
   header { padding: 16px 16px 4px; }
-  #config { position: static; }
   .trilho { min-width: 90px; }
 }
 footer { text-align: center; color: var(--suave); font-size: 13px; padding: 12px; }
 .painel { background: var(--painel); border: 1px solid var(--borda); border-radius: 10px;
           padding: 16px; margin-bottom: 16px; }
-#config { position: sticky; top: 12px; }
+@media (min-width: 901px) { #config { position: sticky; top: 12px; } }
 h2 { margin: 0 0 12px; font-size: 17px; }
 .campos { display: grid; gap: 10px; }
 label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
@@ -73,5 +72,38 @@ table.dados tfoot td { font-weight: 700; border-bottom: 0; }
 .grafico { position: relative; height: 320px; }
 tr.destaque td { background: #f3f8f4; }
 table.dados td.col-trilho { width: 30%; }
-.painel { overflow-x: auto; }
 table.dados td.n, table.dados th.n { white-space: nowrap; }
+
+/* v3: textos explicativos, estado vazio, tabelas roláveis, destaques */
+.rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+#config .campos .dica { margin: -4px 0 2px; }
+#metodo-desc { border-left: 3px solid var(--barra); padding-left: 8px; }
+.explica { color: var(--suave); font-size: 13.5px; margin: -6px 0 12px; max-width: 75ch; }
+.explica + .kpis { margin-top: 4px; }
+.destaque-txt { background: #f3f8f4; border-left: 3px solid var(--acento); padding: 8px 12px;
+                border-radius: 0 6px 6px 0; margin: 0 0 12px; font-size: 14px; }
+.destaque-txt:empty { display: none; }
+h3 { font-size: 15px; margin: 18px 0 6px; }
+.grafico.baixo { height: 170px; }
+.atalho { margin: 10px 0 0; }
+.vazio ol { margin: 0 0 10px; padding-left: 20px; }
+.vazio li { margin-bottom: 6px; }
+.selo.ativa { background: #fff1d6; color: #7a4e00; }
+.selo.limite { background: #e8eef7; color: #2d4f7c; }
+.selo { white-space: nowrap; }
+tr.ativa td:first-child { font-weight: 600; }
+td.metodo { min-width: 170px; }
+.rolagem + .explica { margin-top: 12px; }
+td.metodo .dica { font-size: 12px; }
+button:disabled:hover { background: var(--acento); }
+button.sec:disabled:hover { background: #fff; }
+button:focus-visible, summary:focus-visible { outline: 3px solid var(--barra); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .painel { padding: 12px; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+  .kpi .v { font-size: 18px; }
+  table.limites input { min-width: 70px; }
+  .acoes button { flex: 1 1 auto; }
+  table.dados td, table.dados th { white-space: nowrap; }
+  table.dados td.metodo { white-space: normal; min-width: 130px; }
+}

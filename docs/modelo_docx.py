@@ -199,6 +199,11 @@ class Documento:
         linha(tr_cab, cabecalho, cabeca=True)
         for valores in linhas:
             linha(tr_dado, valores)
+        # mantém a tabela inteira na mesma página (todas as linhas menos a última "seguem a próxima")
+        for tr in tbl.findall(qn("w:tr"))[:-1]:
+            for ppr in tr.iter(qn("w:pPr")):
+                if ppr.find(qn("w:keepNext")) is None:
+                    ppr.insert(0, ppr.makeelement(qn("w:keepNext"), {}))
         self._add(tbl)
         if fonte:
             self.fonte(fonte)

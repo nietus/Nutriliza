@@ -1,0 +1,9 @@
+\begin{tikzpicture}[gene/.style={draw, minimum width=11mm, minimum height=7mm, font=\footnotesize, inner sep=0}]
+  \foreach \v/\r [count=\k] in {3/arroz, 2/feijão, 0/frango, 1/ovo, 2/leite, 1/banana, $\cdots$/, 2/laranja} {
+    \node[gene] (g\k) at (\k*11mm, 0) {\v};
+    \node[font=\scriptsize, below=0.5mm of g\k, text height=1.6ex, text depth=0.3ex] {\r};
+  }
+  \node[gene, fill=black!8] (g9) at (9*11mm, 0) {0};
+  \node[font=\scriptsize, below=0.5mm of g9, text height=1.6ex, text depth=0.3ex] {excluído};
+  \draw[decorate, decoration={brace, amplitude=4pt}] ($(g1.north west)+(0,1mm)$) -- node[above=3pt, font=\footnotesize]{$n = 37$ genes, $x_i \in \{0, \dots, M_i\}$ porções} ($(g9.north east)+(0,1mm)$);
+\end{tikzpicture}
