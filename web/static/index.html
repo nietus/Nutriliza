@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nutriliza · Otimização de dietas</title>
+<link rel="stylesheet" href="/static/estilo.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>Nutriliza</h1>
+  <p>Otimização de dietas por Programação Linear, Branch and Bound e Algoritmo Genético</p>
+</header>
+
+<main>
+  <section class="painel" id="config">
+    <h2>Configuração</h2>
+    <div class="campos">
+      <label>Perfil
+        <select id="perfil"></select>
+      </label>
+      <label>Objetivo
+        <select id="objetivo"></select>
+      </label>
+      <label>Método
+        <select id="metodo"></select>
+      </label>
+    </div>
+    <p id="perfil-desc" class="dica"></p>
+
+    <details open>
+      <summary>Limites diários por nutriente <span class="dica">(deixe em branco para sem limite)</span></summary>
+      <table class="limites">
+        <thead><tr><th>Nutriente</th><th>Mínimo</th><th>Máximo</th><th>Unid.</th></tr></thead>
+        <tbody id="limites"></tbody>
+      </table>
+      <button type="button" class="sec" id="restaurar">Restaurar limites do perfil</button>
+    </details>
+
+    <div class="acoes">
+      <button id="otimizar">Otimizar</button>
+      <button id="comparar" class="sec">Comparar métodos</button>
+    </div>
+  </section>
+
+  <section id="saida">
+    <div id="carregando" class="painel oculto"><span class="spin"></span> <span id="carregando-txt">Resolvendo…</span></div>
+    <div id="erro" class="painel erro oculto"></div>
+
+    <div id="res" class="oculto">
+      <section class="painel">
+        <h2 id="res-titulo">Resultado</h2>
+        <div class="kpis" id="kpis"></div>
+      </section>
+
+      <section class="painel">
+        <h2>Cardápio do dia</h2>
+        <table id="cardapio" class="dados"></table>
+      </section>
+
+      <section class="painel">
+        <h2>Nutrientes: total × limites</h2>
+        <table id="totais" class="dados"></table>
+      </section>
+
+      <section class="painel" id="bloco-precos">
+        <h2>Preços-sombra (restrições ativas)</h2>
+        <p class="dica">Quanto o valor ótimo muda por unidade a mais no lado direito da restrição.</p>
+        <table id="precos" class="dados"></table>
+      </section>
+
+      <section class="painel" id="bloco-curva">
+        <h2>Convergência do algoritmo genético</h2>
+        <div class="grafico"><canvas id="curva"></canvas></div>
+      </section>
+    </div>
+
+    <div id="cmp" class="oculto">
+      <section class="painel">
+        <h2 id="cmp-titulo">Comparação de métodos</h2>
+        <p class="dica">Todos sobre o modelo inteiro (porções inteiras); o Simplex resolve a relaxação linear, que dá o limite teórico.</p>
+        <table id="cmp-tabela" class="dados"></table>
+      </section>
+    </div>
+  </section>
+</main>
+<footer>Trabalho acadêmico · limites didáticos, não substituem um nutricionista.</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

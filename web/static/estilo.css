@@ -1,0 +1,71 @@
+:root {
+  --fundo: #f5f6f4; --painel: #fff; --texto: #1f2a24; --suave: #5f6b64;
+  --borda: #dfe3df; --acento: #2f7a4f; --acento-esc: #245f3d;
+  --ok: #2f7a4f; --ruim: #b3261e; --barra: #cfe3d6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+       background: var(--fundo); color: var(--texto); }
+header { padding: 20px 24px 8px; max-width: 1280px; margin: 0 auto; }
+header h1 { margin: 0; font-size: 26px; color: var(--acento-esc); }
+header p { margin: 2px 0 0; color: var(--suave); }
+main { max-width: 1280px; margin: 0 auto; padding: 12px 24px 24px; display: grid;
+       grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 12px 16px; } }
+footer { text-align: center; color: var(--suave); font-size: 13px; padding: 12px; }
+.painel { background: var(--painel); border: 1px solid var(--borda); border-radius: 10px;
+          padding: 16px; margin-bottom: 16px; }
+#config { position: sticky; top: 12px; }
+h2 { margin: 0 0 12px; font-size: 17px; }
+.campos { display: grid; gap: 10px; }
+label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
+select, input { font: inherit; padding: 6px 8px; border: 1px solid var(--borda);
+                border-radius: 6px; background: #fff; width: 100%; }
+input:focus, select:focus { outline: 2px solid var(--barra); border-color: var(--acento); }
+.dica { color: var(--suave); font-size: 13px; font-weight: normal; }
+details { margin-top: 10px; }
+summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; }
+table.limites { width: 100%; border-collapse: collapse; }
+table.limites th { text-align: left; font-size: 12px; color: var(--suave); font-weight: 600; padding: 2px 4px; }
+table.limites td { padding: 2px 4px; }
+table.limites td:first-child { font-size: 13px; }
+table.limites td:last-child { color: var(--suave); font-size: 12px; }
+table.limites input { padding: 4px 6px; }
+input.mudou { background: #fff8e1; }
+button { font: inherit; font-weight: 600; padding: 9px 16px; border-radius: 6px; cursor: pointer;
+         border: 1px solid var(--acento); background: var(--acento); color: #fff; }
+button:hover { background: var(--acento-esc); }
+button.sec { background: #fff; color: var(--acento-esc); }
+button.sec:hover { background: #eef5f0; }
+button:disabled { opacity: .55; cursor: wait; }
+#restaurar { margin-top: 8px; padding: 5px 10px; font-size: 13px; }
+.acoes { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.oculto { display: none !important; }
+.erro { border-color: #f1c4c0; background: #fdf1f0; color: var(--ruim); }
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--barra);
+        border-top-color: var(--acento); border-radius: 50%; animation: gira .8s linear infinite;
+        vertical-align: -3px; margin-right: 6px; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.kpi { border: 1px solid var(--borda); border-radius: 8px; padding: 10px 12px; }
+.kpi .r { font-size: 12px; color: var(--suave); }
+.kpi .v { font-size: 20px; font-weight: 700; }
+table.dados { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.dados th { text-align: left; font-size: 12px; color: var(--suave); border-bottom: 1px solid var(--borda);
+                 padding: 6px 8px; font-weight: 600; }
+table.dados td { padding: 6px 8px; border-bottom: 1px solid #eef0ee; }
+table.dados td.n, table.dados th.n { text-align: right; font-variant-numeric: tabular-nums; }
+table.dados tfoot td { font-weight: 700; border-bottom: 0; }
+.selo { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+.selo.ok { background: #e3f1e8; color: var(--ok); }
+.selo.ruim { background: #fbe3e1; color: var(--ruim); }
+.trilho { position: relative; height: 10px; background: #eef0ee; border-radius: 5px; min-width: 140px; }
+.trilho .faixa { position: absolute; top: 0; bottom: 0; background: var(--barra); border-radius: 5px; }
+.trilho .marca { position: absolute; top: -3px; width: 4px; height: 16px; border-radius: 2px;
+                 background: var(--ok); transform: translateX(-2px); }
+.trilho .marca.ruim { background: var(--ruim); }
+.grafico { position: relative; height: 320px; }
+tr.destaque td { background: #f3f8f4; }
+table.dados td.col-trilho { width: 30%; }
+.painel { overflow-x: auto; }
+table.dados td.n, table.dados th.n { white-space: nowrap; }

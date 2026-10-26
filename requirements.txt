@@ -1,0 +1,7 @@
+numpy
+pandas
+pulp
+matplotlib
+fastapi
+uvicorn
+pytest

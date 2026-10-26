@@ -1,0 +1,81 @@
+perfil,nome,grupo,porcoes,medida,gramas,custo
+referencia,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+referencia,Macarrão cozido,cereais,2.0,1 prato raso,300.0,1.2000000000000002
+referencia,Feijão carioca cozido,leguminosas,2.0,1 concha,280.0,0.84
+referencia,Sardinha em conserva,carnes,1.0,1/2 lata,60.0,1.7999999999999998
+referencia,Leite integral,laticínios,2.0,1 copo,400.0,2.2
+referencia,Azeite de oliva,óleos,2.0,1 colher de sopa,20.0,0.8
+referencia,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+referencia,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
+sobrepeso,Macarrão cozido,cereais,1.0,1 prato raso,150.0,0.6000000000000001
+sobrepeso,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+sobrepeso,Grão-de-bico cozido,leguminosas,1.0,1 concha pequena,100.0,0.8
+sobrepeso,Fígado bovino grelhado,carnes,1.0,1 bife médio,100.0,2.5
+sobrepeso,Leite integral,laticínios,2.0,1 copo,400.0,2.2
+sobrepeso,Leite desnatado,laticínios,1.0,1 copo,200.0,1.2
+sobrepeso,Azeite de oliva,óleos,1.0,1 colher de sopa,10.0,0.4
+sobrepeso,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+sobrepeso,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
+subpeso,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+subpeso,Arroz integral cozido,cereais,3.0,1 escumadeira cheia,450.0,1.3499999999999999
+subpeso,Macarrão cozido,cereais,2.0,1 prato raso,300.0,1.2000000000000002
+subpeso,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+subpeso,Sardinha em conserva,carnes,1.0,1/2 lata,60.0,1.7999999999999998
+subpeso,Leite integral,laticínios,1.0,1 copo,200.0,1.1
+subpeso,Pasta de amendoim integral,oleaginosas,1.0,1 colher de sopa,20.0,0.7000000000000001
+subpeso,Azeite de oliva,óleos,3.0,1 colher de sopa,30.0,1.2000000000000002
+subpeso,Laranja pera,frutas,1.0,1 unidade,180.0,0.7200000000000001
+subpeso,Couve manteiga refogada,hortaliças,2.0,2 colheres de sopa,100.0,1.2
+subpeso,Cenoura crua,hortaliças,2.0,3 colheres de sopa,120.0,0.6
+atleta,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+atleta,Arroz integral cozido,cereais,3.0,1 escumadeira cheia,450.0,1.3499999999999999
+atleta,Macarrão cozido,cereais,2.0,1 prato raso,300.0,1.2000000000000002
+atleta,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+atleta,Grão-de-bico cozido,leguminosas,1.0,1 concha pequena,100.0,0.8
+atleta,Fígado bovino grelhado,carnes,1.0,1 bife médio,100.0,2.5
+atleta,Leite integral,laticínios,3.0,1 copo,600.0,3.3000000000000003
+atleta,Pasta de amendoim integral,oleaginosas,2.0,1 colher de sopa,40.0,1.4000000000000001
+atleta,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+atleta,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
+vegetariano,Arroz branco cozido,cereais,2.0,1 escumadeira cheia,300.0,0.6000000000000001
+vegetariano,Arroz integral cozido,cereais,2.0,1 escumadeira cheia,300.0,0.8999999999999999
+vegetariano,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+vegetariano,Grão-de-bico cozido,leguminosas,2.0,1 concha pequena,200.0,1.6
+vegetariano,Ovo cozido,ovos,1.0,1 unidade,50.0,0.7
+vegetariano,Leite integral,laticínios,2.0,1 copo,400.0,2.2
+vegetariano,Azeite de oliva,óleos,1.0,1 colher de sopa,10.0,0.4
+vegetariano,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+vegetariano,Couve manteiga refogada,hortaliças,2.0,2 colheres de sopa,100.0,1.2
+vegano,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+vegano,Macarrão cozido,cereais,1.0,1 prato raso,150.0,0.6000000000000001
+vegano,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+vegano,Grão-de-bico cozido,leguminosas,2.0,1 concha pequena,200.0,1.6
+vegano,Tofu firme,leguminosas,1.0,1 fatia grossa,100.0,4.0
+vegano,Azeite de oliva,óleos,3.0,1 colher de sopa,30.0,1.2000000000000002
+vegano,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+vegano,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
+lactose,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+lactose,Arroz integral cozido,cereais,3.0,1 escumadeira cheia,450.0,1.3499999999999999
+lactose,Feijão carioca cozido,leguminosas,2.0,1 concha,280.0,0.84
+lactose,Sardinha em conserva,carnes,2.0,1/2 lata,120.0,3.5999999999999996
+lactose,Azeite de oliva,óleos,1.0,1 colher de sopa,10.0,0.4
+lactose,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+lactose,Couve manteiga refogada,hortaliças,2.0,2 colheres de sopa,100.0,1.2
+celiaco,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+celiaco,Arroz integral cozido,cereais,1.0,1 escumadeira cheia,150.0,0.44999999999999996
+celiaco,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+celiaco,Grão-de-bico cozido,leguminosas,1.0,1 concha pequena,100.0,0.8
+celiaco,Leite integral,laticínios,3.0,1 copo,600.0,3.3000000000000003
+celiaco,Azeite de oliva,óleos,2.0,1 colher de sopa,20.0,0.8
+celiaco,Banana prata,frutas,1.0,1 unidade,90.0,0.54
+celiaco,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+atleta_vegetariano,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
+atleta_vegetariano,Arroz integral cozido,cereais,3.0,1 escumadeira cheia,450.0,1.3499999999999999
+atleta_vegetariano,Macarrão cozido,cereais,2.0,1 prato raso,300.0,1.2000000000000002
+atleta_vegetariano,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
+atleta_vegetariano,Grão-de-bico cozido,leguminosas,2.0,1 concha pequena,200.0,1.6
+atleta_vegetariano,Ovo cozido,ovos,3.0,1 unidade,150.0,2.0999999999999996
+atleta_vegetariano,Leite desnatado,laticínios,2.0,1 copo,400.0,2.4
+atleta_vegetariano,Pasta de amendoim integral,oleaginosas,3.0,1 colher de sopa,60.0,2.1
+atleta_vegetariano,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
+atleta_vegetariano,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
