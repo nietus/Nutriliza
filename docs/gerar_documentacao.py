@@ -17,7 +17,7 @@ from nutriliza import NUTRIENTES, OBJETIVOS, PERFIS, carregar_alimentos  # noqa:
 
 RES, FIG = RAIZ / "resultados", RAIZ / "figuras"
 INTEGRANTES = ["Antonio Soares Couto Neto", "Rodrigo Drummond", "Thales Matheus"]
-PROFESSOR = "[nome do professor]"
+PROFESSOR = "Maury Gouvêa"
 
 
 def br(v, casas=2):
