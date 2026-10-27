@@ -9,6 +9,7 @@ import pandas as pd
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 from nutriliza import OBJETIVOS, PERFIS  # noqa: E402
+from nutriliza.exemplo import porcao_mais_fracionaria  # noqa: E402
 
 RES = RAIZ / "resultados"
 OUT = Path(__file__).resolve().parent / "tabelas"
@@ -17,6 +18,11 @@ OUT.mkdir(exist_ok=True)
 CURTO = {"referencia": "Referência", "sobrepeso": "Sobrepeso", "subpeso": "Subpeso",
          "atleta": "Atleta", "vegetariano": "Vegetariano", "vegano": "Vegano",
          "lactose": "Intol. à lactose", "celiaco": "Celíaco", "atleta_vegetariano": "Atleta vegetariano"}
+
+
+PERFIS_DUAIS = ["referencia", "sobrepeso", "subpeso", "atleta", "vegetariano", "vegano", "atleta_vegetariano"]
+CURTO_TAB = {"referencia": "Ref.", "sobrepeso": "Sobrep.", "subpeso": "Subp.", "atleta": "Atleta",
+             "vegetariano": "Veget.", "vegano": "Vegano", "atleta_vegetariano": "Atl. veg."}
 
 
 def br(v, casas=2):
@@ -30,6 +36,11 @@ def lim(par):
     if hi is None:
         return f"$\\geq$ {br(lo, 0)}"
     return f"{br(lo, 0)}--{br(hi, 0)}"
+
+
+def vertices(d):
+    """Número de dietas distintas (vértices) encontradas pela soma ponderada."""
+    return int(d[["custo", "sodio"]].round(4).drop_duplicates().shape[0])
 
 
 def cientifico(v):
@@ -86,13 +97,13 @@ def conflito():
 def duais():
     e3 = pd.read_csv(RES / "e3_duais_custo.csv")
     piv = e3.pivot_table(index="restricao", columns="perfil", values="preco_sombra")
-    perfis_ = ["referencia", "sobrepeso", "atleta", "vegetariano", "vegano", "atleta_vegetariano"]
+    perfis_ = PERFIS_DUAIS
     rot = {"kcal_min": "Energia mín. (kcal)", "proteina_min": "Proteína mín. (g)",
            "carboidrato_max": "Carboidrato máx. (g)", "gordura_min": "Gordura mín. (g)",
            "calcio_min": "Cálcio mín. (mg)", "ferro_min": "Ferro mín. (mg)",
            "frutas_hortalicas_min": "Frutas e hortaliças (g)"}
-    cab = " & ".join(["Restrição"] + [CURTO[p].replace("Atleta vegetariano", "Atl. veg.") for p in perfis_])
-    L = [r"\begin{tabular}{lrrrrrr}", r"\toprule", cab + r" \\", r"\midrule"]
+    cab = " & ".join(["Restrição"] + [CURTO_TAB[p] for p in perfis_])
+    L = [r"\begin{tabular}{lrrrrrrr}", r"\toprule", cab + r" \\", r"\midrule"]
     for r, nome in rot.items():
         if r not in piv.index:
             continue
@@ -120,9 +131,9 @@ def impacto():
     """Preço-sombra x limite: parcela do custo ótimo atribuída a cada restrição."""
     e3 = pd.read_csv(RES / "e3_duais_custo.csv")
     piv = e3.pivot_table(index="restricao", columns="perfil", values="impacto")
-    perfis_ = ["referencia", "sobrepeso", "subpeso", "atleta", "vegetariano", "vegano"]
-    L = [r"\begin{tabular}{lrrrrrr}", r"\toprule",
-         " & ".join(["Restrição"] + [CURTO[p] for p in perfis_]) + r" \\", r"\midrule"]
+    perfis_ = PERFIS_DUAIS
+    L = [r"\begin{tabular}{lrrrrrrr}", r"\toprule",
+         " & ".join(["Restrição"] + [CURTO_TAB[p] for p in perfis_]) + r" \\", r"\midrule"]
     for r, nome in ROT_IMPACTO.items():
         if r not in piv.index:
             continue
@@ -180,16 +191,14 @@ def tempos():
 
 def cardapio():
     e7 = pd.read_csv(RES / "e7_cardapios.csv")
-    perfis_ = ["sobrepeso", "atleta", "vegano"]
-    L = [r"\begin{tabular}{lll}", r"\toprule",
-         " & ".join(CURTO[p] for p in perfis_) + r" \\", r"\midrule"]
-    colunas = [[f"{int(round(r.porcoes))}$\\times$ {r.nome.lower()}" for r in e7[e7.perfil == p].itertuples()]
-               for p in perfis_]
-    for i in range(max(map(len, colunas))):
-        L.append(" & ".join(c[i] if i < len(c) else "" for c in colunas) + r" \\")
-    tot = e7.groupby("perfil").custo.sum()
-    L += [r"\midrule", " & ".join(f"Total: R\\$ {br(tot[p])}" for p in perfis_) + r" \\",
-          r"\bottomrule", r"\end{tabular}"]
+    perfis_ = ["sobrepeso", "subpeso", "atleta", "vegetariano", "vegano"]
+    L = [r"\begin{tabular}{p{2.3cm}p{9.7cm}r}", r"\toprule",
+         r"Perfil & Cardápio diário (porções) & Custo (R\$) \\", r"\midrule"]
+    for p in perfis_:
+        c = e7[e7.perfil == p]
+        itens = "; ".join(f"{int(round(r.porcoes))} {r.nome.lower()}" for r in c.itertuples())
+        L.append(f"{CURTO[p]} & {itens} & {br(c.custo.sum())} \\\\[2pt]")
+    L += [r"\bottomrule", r"\end{tabular}"]
     escrever("cardapio", L)
 
 
@@ -206,6 +215,8 @@ def preencher_texto():
     e4 = pd.read_csv(RES / "e4_pareto.csv")
     par = e4[e4.fronteira == "custo_proteina"]
     par_v, par_a = par[par.perfil == "vegano"], par[par.perfil == "atleta"]
+    e8 = pd.read_csv(RES / "e8_parametros_ga.csv")
+    ex = porcao_mais_fracionaria("atleta", "custo")
     valores = {
         "GA_GAP": br(e5.ga_gap_medio_pct.mean(), 1), "GA_OTIMO": br(e5.ga_otimo_pct.mean(), 0),
         "GA_TEMPO": br(e5.ga_tempo_s.mean(), 1), "BB_NOS": br(e5.bb_nos.mean(), 0),
@@ -243,10 +254,25 @@ def preencher_texto():
         "PIVOS_REF": str(int(e1[(e1.perfil == "referencia") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
         "PIVOS_VGN": str(int(e1[(e1.perfil == "vegano") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
         "PIVOS_CEL": str(int(e1[(e1.perfil == "celiaco") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
+        "PIVOS_VEG": str(int(e1[(e1.perfil == "vegetariano") & (e1.objetivo == "custo")].iteracoes.iloc[0])),
+        "PIVOS_MIN": str(int(e1[e1.objetivo == "custo"].iteracoes.min())),
+        "PIVOS_MAX": str(int(e1[e1.objetivo == "custo"].iteracoes.max())),
         "PARETO_VGN_INI": br(par_v.dual.min(), 3), "PARETO_VGN_FIM": br(par_v.dual.max(), 3),
         "PARETO_ATL_INI": br(par_a.dual.min(), 3), "PARETO_ATL_FIM": br(par_a.dual.max(), 3),
         "PARETO_VGN_C0": br(par_v.custo.min()), "PARETO_VGN_C1": br(par_v.custo.max()),
         "PARETO_VGN_P1": br(par_v.proteina.max(), 0),
+        "GA_GAP_MEDIANA": br(e5.ga_gap_medio_pct.median(), 1),
+        "EX_VALOR": br(ex["valor"]), "EX_NOME": ex["nome"].lower(),
+        "POND_VERT": str(vertices(e4[e4.fronteira == "ponderada"])),
+        "POND_FINA_VERT": str(vertices(e4[e4.fronteira.isin(["ponderada", "ponderada_fina"])])),
+        "E8_MENOR_GAP": br(e8[e8.config == "menor"].gap_pct.mean(), 1),
+        "E8_MENOR_TEMPO": br(e8[e8.config == "menor"].tempo_s.mean(), 1),
+        "E8_ADOT_GAP": br(e8[e8.config == "adotada"].gap_pct.mean(), 1),
+        "E8_ADOT_TEMPO": br(e8[e8.config == "adotada"].tempo_s.mean(), 1),
+        "LACTOSE_DIF": br(c["lactose"] - c["referencia"]),
+        "LACTOSE_PCT": br((c["lactose"] / c["referencia"] - 1) * 100, 0),
+        "PROT_ATLV_IMP": br(imp.loc["proteina_min", "atleta_vegetariano"]),
+        "PROT_ATLV_PCT": br(imp.loc["proteina_min", "atleta_vegetariano"] / c["atleta_vegetariano"] * 100, 0),
     }
     pasta = Path(__file__).resolve().parent
     texto = (pasta / "artigo_modelo.tex").read_text(encoding="utf-8")

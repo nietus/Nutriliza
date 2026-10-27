@@ -5,7 +5,7 @@ Gerados por Branch and Bound sobre o modelo inteiro. Valores diários; custos em
 
 ## Adulto de referência
 
-Adulto saudável, 70 kg, atividade moderada; manutenção do peso.
+Homem adulto saudável, 70 kg, atividade moderada; manutenção do peso.
 
 | Alimento | Porções | Medida caseira | Gramas | Custo (R$) |
 |---|---:|---|---:|---:|
@@ -29,15 +29,13 @@ Adulto com 95 kg; déficit de cerca de 500 kcal/dia, proteína alta para preserv
 |---|---:|---|---:|---:|
 | Macarrão cozido | 1 | 1 prato raso | 150 | 0.60 |
 | Feijão carioca cozido | 3 | 1 concha | 420 | 1.26 |
-| Grão-de-bico cozido | 1 | 1 concha pequena | 100 | 0.80 |
-| Fígado bovino grelhado | 1 | 1 bife médio | 100 | 2.50 |
-| Leite integral | 2 | 1 copo | 400 | 2.20 |
-| Leite desnatado | 1 | 1 copo | 200 | 1.20 |
-| Azeite de oliva | 1 | 1 colher de sopa | 10 | 0.40 |
+| Grão-de-bico cozido | 2 | 1 concha pequena | 200 | 1.60 |
+| Sardinha em conserva | 2 | 1/2 lata | 120 | 3.60 |
+| Ovo cozido | 3 | 1 unidade | 150 | 2.10 |
 | Laranja pera | 2 | 1 unidade | 360 | 1.44 |
 | Cenoura crua | 1 | 3 colheres de sopa | 60 | 0.30 |
 
-**Total:** R$ 10.70; 1501 kcal; proteína 90 g; carboidrato 199 g; gordura 39 g; fibra 51 g; cálcio 1032 mg; ferro 15.4 mg; sódio 459 mg; vitamina C 198 mg.
+**Total:** R$ 10.90; 1599 kcal; proteína 90 g; carboidrato 196 g; gordura 52 g; fibra 58 g; cálcio 1048 mg; ferro 18.9 mg; sódio 1044 mg; vitamina C 199 mg.
 
 
 ## Subpeso (ganho de peso)
@@ -71,19 +69,19 @@ Atleta de 80 kg em treino de força: proteína de 1,6 a 2,2 g/kg e carboidrato d
 | Arroz integral cozido | 3 | 1 escumadeira cheia | 450 | 1.35 |
 | Macarrão cozido | 2 | 1 prato raso | 300 | 1.20 |
 | Feijão carioca cozido | 3 | 1 concha | 420 | 1.26 |
-| Grão-de-bico cozido | 1 | 1 concha pequena | 100 | 0.80 |
-| Fígado bovino grelhado | 1 | 1 bife médio | 100 | 2.50 |
-| Leite integral | 3 | 1 copo | 600 | 3.30 |
-| Pasta de amendoim integral | 2 | 1 colher de sopa | 40 | 1.40 |
+| Grão-de-bico cozido | 2 | 1 concha pequena | 200 | 1.60 |
+| Ovo cozido | 3 | 1 unidade | 150 | 2.10 |
+| Leite desnatado | 2 | 1 copo | 400 | 2.40 |
+| Pasta de amendoim integral | 3 | 1 colher de sopa | 60 | 2.10 |
 | Laranja pera | 2 | 1 unidade | 360 | 1.44 |
 | Cenoura crua | 1 | 3 colheres de sopa | 60 | 0.30 |
 
-**Total:** R$ 14.45; 3071 kcal; proteína 131 g; carboidrato 494 g; gordura 61 g; fibra 75 g; cálcio 1078 mg; ferro 18.7 mg; sódio 502 mg; vitamina C 198 mg.
+**Total:** R$ 14.65; 3121 kcal; proteína 131 g; carboidrato 516 g; gordura 61 g; fibra 84 g; cálcio 1001 mg; ferro 18.4 mg; sódio 469 mg; vitamina C 199 mg.
 
 
 ## Vegetariano (ovolactovegetariano)
 
-Sem carnes e peixes; ferro mínimo 1,8 vez maior pela menor biodisponibilidade do ferro vegetal.
+Sem carnes e peixes; ferro mínimo de 14 mg (1,75 vez o de 8 mg), pela menor biodisponibilidade do ferro vegetal.
 
 | Alimento | Porções | Medida caseira | Gramas | Custo (R$) |
 |---|---:|---|---:|---:|

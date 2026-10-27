@@ -12,3 +12,5 @@ venv/
 *.fdb_latexmk
 *.fls
 ~$*
+resultados_rapido/
+figuras_rapido/

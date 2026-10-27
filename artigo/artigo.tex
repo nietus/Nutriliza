@@ -37,13 +37,14 @@ seven objective functions plus weighted-sum and $\varepsilon$-constraint formula
 A two-phase Simplex with shadow prices, a Branch and Bound for integer servings and a
 memetic Genetic Algorithm were implemented from scratch. The Simplex and the Branch and
 Bound matched the CBC solver in all 90 instances. The dual analysis prices each
-requirement: one extra gram of protein costs R\$ 0.071 for the athlete and
-50\% more without meat. Integer servings raise the minimum cost by
-4.7\%, and the Genetic Algorithm stayed 5.9\% above the optimum on average.
+requirement: one extra gram of protein costs R\$ 0.083 for the athlete and
+27\% more without meat. Integer servings raise the minimum cost by
+4.7\%, and the Genetic Algorithm stayed 6.0\% above the optimum on average over the
+three objectives (median 3.5\%).
 \end{abstract}
 
 \noindent\textbf{Keywords.} Diet problem, Linear programming, Branch and Bound, Genetic
-algorithm, Sensitivity analysis.
+algorithm, Sensitivity analysis
 
 \begin{resumo}
 Este trabalho modela o problema da dieta para nove perfis nutricionais, como atletas,
@@ -52,13 +53,14 @@ sete funções objetivo e as formulações de soma ponderada e $\varepsilon$-res
 Foram implementados do zero um Simplex de duas fases com preços-sombra, um Branch and
 Bound para porções inteiras e um Algoritmo Genético memético. O Simplex e o Branch and
 Bound coincidiram com o resolvedor CBC nas 90 instâncias. A análise dual dá preço a cada
-exigência: um grama a mais de proteína custa R\$~0{,}071 ao atleta e
-50\% a mais sem carnes. Porções inteiras encarecem o custo mínimo em
-4{,}7\%, e o Genético ficou em média 5{,}9\% acima do ótimo.
+exigência: um grama a mais de proteína custa R\$~0{,}083 ao atleta e
+27\% a mais sem carnes. Porções inteiras encarecem o custo mínimo em
+4{,}7\%, e o Genético ficou em média 6{,}0\% acima do ótimo nas três funções objetivo
+(mediana de 3{,}5\%).
 \end{resumo}
 
 \noindent\textbf{Palavras-chave.} Problema da dieta, Programação linear, Branch and
-Bound, Algoritmo genético, Análise de sensibilidade.
+Bound, Algoritmo genético, Análise de sensibilidade
 
 \section{Introdução}
 
@@ -72,7 +74,8 @@ ou por necessidade. Uma pesquisa do IBOPE Inteligência estimou que 14\% dos bra
 se declaravam vegetarianos em 2018 \cite{ibope2018}, e a doença celíaca, que exige a
 exclusão completa do glúten, atinge cerca de 1\% da população mundial
 \cite{singh2018}. Atletas formam outro grupo com exigências próprias, com necessidade
-de proteína até duas vezes maior que a de um adulto sedentário \cite{thomas2016}.
+de proteína de 1,5 a 2,5 vezes a recomendada para um adulto sedentário (1,2 a 2,0~g/kg
+contra 0,8~g/kg) \cite{thomas2016,iom2006}.
 
 Montar uma dieta para cada um desses perfis é, em essência, escolher quanto consumir de
 cada alimento de modo que dezenas de limites nutricionais sejam atendidos ao mesmo
@@ -87,7 +90,7 @@ A formulação clássica, porém, deixa três questões em aberto quando aplicad
 com necessidades específicas. A primeira é que cada perfil muda os limites e a lista de
 alimentos permitidos, e não é óbvio quanto cada exigência encarece a dieta: excluir a
 carne custa pouco ou muito? A segunda é que a solução linear tem porções fracionárias,
-como 0,37 copo de leite, que precisam ser convertidas em porções servíveis sem perder a
+como 2{,}34 porções de arroz integral cozido na dieta de custo mínimo do atleta, que precisam ser convertidas em porções servíveis sem perder a
 factibilidade. A terceira é que o custo mínimo não é o único critério relevante: um
 atleta pode querer maximizar proteína, e um hipertenso, minimizar sódio. Isso pede
 funções objetivo alternativas, uma análise de compromisso entre critérios e métodos de
@@ -151,15 +154,14 @@ tratar perfis individuais como atletas, vegetarianos ou celíacos.
 
 \cite{ferrari2020} aplicaram programação linear a dados de consumo alimentar da Itália
 para construir dietas que atendem às recomendações nutricionais e reduzem as emissões
-de gases de efeito estufa, separadamente para homens e mulheres. O estudo amplia o objetivo para além do custo, mas trata a população geral, sem perfis
-com restrições alimentares específicas, e não discute o efeito de exigir porções
-inteiras.
+de gases de efeito estufa, separadamente para homens e mulheres. O estudo amplia o objetivo para além do custo, mas otimiza um único critério, trata a
+população geral, sem perfis com restrições alimentares específicas, e não discute o
+efeito de exigir porções inteiras.
 
 A revisão de \cite{vandooren2018} mapeia o uso da Programação Linear em dietas sob
-objetivos nutricionais, econômicos e ambientais. Ela mostra que a maior parte dos
-estudos minimiza custo ou desvio em relação à dieta atual, com pouca atenção a
-restrições alimentares como vegetarianismo ou intolerâncias e quase nenhuma comparação
-entre métodos de solução.
+objetivos nutricionais, econômicos e ambientais. A revisão concentra-se na formulação e nos objetivos dos modelos, e não na comparação
+entre métodos de solução nem no efeito de restrições alimentares específicas sobre a
+dieta ótima.
 
 \cite{gerdessen2015} estudaram modelos de dieta com programação por metas e mostraram
 que a escolha da função de agregação dos desvios muda bastante a dieta resultante. O
@@ -247,8 +249,8 @@ nutricional do modelo: para cada um dos nove nutrientes (energia, proteína,
 carboidrato, gordura, fibra, cálcio, ferro, sódio e vitamina~C), a soma das
 contribuições das porções escolhidas deve ficar entre o mínimo e o máximo do perfil.
 Quando um nutriente não tem limite em um dos lados, como o máximo de fibra ou o mínimo
-de sódio, a restrição correspondente não é criada, o que dá até 17 restrições
-nutricionais por perfil.
+de sódio, a restrição correspondente não é criada, o que dá 16 restrições nutricionais por perfil
+e, com a de frutas e hortaliças, 17 restrições além dos limites de porção.
 
 A restrição~(\ref{eq:fh}) segue a recomendação da OMS de consumir ao menos 400~g de
 frutas e hortaliças por dia \cite{who2003} e evita que o modelo atenda à vitamina~C e à
@@ -260,30 +262,40 @@ mantém o mesmo número de variáveis em todos os cenários. Por fim, (\ref{eq:d
 os dois modelos estudados: o linear, resolvido pelo Simplex, e o inteiro, resolvido pelo
 Branch and Bound e pelo Algoritmo Genético.
 
-Usar o número de porções como variável, e não a massa em gramas, tem duas vantagens. A
-primeira é que a solução inteira corresponde diretamente a medidas caseiras (um ovo,
-uma concha de feijão, um copo de leite). A segunda é que os coeficientes $a_{ji}$ ficam
-em escalas próximas, o que melhora a estabilidade numérica do Simplex. Quanto ao
-domínio, os conjuntos são discretos, os parâmetros são contínuos e não negativos, e as
-variáveis são contínuas ou inteiras conforme o modelo.
+Usar o número de porções como variável, e não a massa em gramas, faz a solução
+inteira corresponder diretamente a medidas caseiras (um ovo, uma concha de feijão) e
+deixa os coeficientes $a_{ji}$ em escalas próximas, o que ajuda a estabilidade numérica
+do Simplex.
 
 \subsection{Perfis Nutricionais e Funções Objetivo}
 
 A base tem 37 alimentos comuns no Brasil, agrupados em cereais, tubérculos,
 leguminosas, carnes, ovos, laticínios, oleaginosas, óleos, frutas e hortaliças. A
 composição por 100~g vem da Tabela Brasileira de Composição de Alimentos
-\cite{taco2011} e, para tofu, bebida de soja e whey, de rótulos comerciais. Cada
-alimento tem uma porção caseira (1 concha de feijão = 140~g, por exemplo), um preço
-por 100~g, que é uma premissa de mercado de Belo Horizonte em 2026, e quatro marcadores
-binários: carne ou peixe, origem animal, lactose e glúten.
+\cite{taco2011} para 30 alimentos; grão-de-bico e macarrão cozidos, tilápia grelhada,
+pasta de amendoim e tofu firme, ausentes da TACO, vêm da base FoodData Central do USDA
+\cite{usda2019}, e a bebida de soja fortificada e o whey, de rótulos comerciais. A
+fonte de cada alimento está registrada na própria base. Cada alimento tem uma porção
+caseira (1 concha de feijão = 140~g, por exemplo), um preço por 100~g, que é uma
+premissa de mercado de Belo Horizonte em 2026, e quatro marcadores binários: carne ou
+peixe, origem animal, lactose e glúten.
 
-A Tabela~\ref{tab:perfis} resume os nove perfis. Os limites seguem as Ingestões
-Dietéticas de Referência \cite{iom2006}, o limite de sódio da OMS \cite{who2012} e o
-consenso de nutrição esportiva \cite{thomas2016}. Para vegetarianos e veganos, o ferro
+As preparações da TACO são cozidas sem sal, então o sódio do modelo é só o dos
+alimentos; o sal de cozinha fica de fora, e a minimização de sódio é um exercício do
+modelo, não uma recomendação. O fígado bovino tem zero porções permitidas, porque 100~g
+excedem várias vezes o limite superior de vitamina~A, de 3.000~$\mu$g \cite{iom2006},
+nutriente que o modelo não controla. O tofu considerado é o coagulado com sulfato de
+cálcio; o coagulado com cloreto de magnésio tem bem menos cálcio.
+
+Os limites dos nove perfis, resumidos na Tabela~\ref{tab:perfis}, seguem as
+Ingestões Dietéticas de Referência para um adulto do sexo masculino \cite{iom2006}, o
+limite de sódio da OMS \cite{who2012} e o consenso de nutrição esportiva
+\cite{thomas2016}. Para vegetarianos e veganos, o ferro
 mínimo sobe de 8 para 14~mg (1,75 vez), próximo do fator 1,8 recomendado porque o ferro
-de origem vegetal é menos absorvido \cite{iom2006,melina2016}. Todos os perfis exigem ainda 1.000 a 2.500~mg de cálcio, ao
-menos 75~mg de vitamina~C (90~mg para atletas) e no máximo 2.000~mg de sódio (2.300~mg
-no subpeso e 3.000~mg para atletas, pela perda no suor). O perfil de atleta vegetariano
+de origem vegetal é menos absorvido \cite{iom2006,melina2016}. Todos os perfis exigem
+ainda ao menos 38~g de fibra, 1.000 a 2.500~mg de cálcio, ao menos 90~mg de vitamina~C
+e no máximo 2.000~mg de sódio dos alimentos (2.300~mg no subpeso e 3.000~mg para
+atletas, pela perda no suor). O perfil de atleta vegetariano
 combina os limites do atleta com a exclusão de carnes, o que permite estudar o efeito
 de restrições simultâneas.
 
@@ -302,6 +314,8 @@ os critérios normalizados pelos ótimos individuais:
 Z_w = w \, \frac{\text{custo}(x)}{\text{custo}^*} + (1 - w) \, \frac{\text{sódio}(x)}{\text{sódio}^*}, \qquad w \in [0, 1]
 \label{eq:ponderada}
 \end{equation}
+Foram usados 11 pesos uniformes ($w = 0; 0{,}1; \ldots; 1$) e mais 8 pesos entre
+0,95 e 0,999, região em que o custo passa a dominar.
 O método $\varepsilon$-restrito \cite{haimes1971} mantém um critério como objetivo e
 transforma o outro em restrição, variando $\varepsilon$ para traçar a fronteira:
 \begin{equation}
@@ -313,38 +327,41 @@ transforma o outro em restrição, variando $\varepsilon$ para traçar a frontei
 \subsection{Problema Dual e Preços-Sombra}
 
 Para o custo mínimo, escrevendo as restrições de máximo~(\ref{eq:max}) como
-$-\sum_i a_{ji} x_i \geq -U_j$ e incluindo~(\ref{eq:fh}), o modelo linear fica na forma
-primal padrão, e o dual associa uma variável $y_k$ a cada restrição $k$:
+$-\sum_i a_{ji} x_i \geq -U_j$, reunindo-as com~(\ref{eq:min}) e~(\ref{eq:fh}) em
+$Ax \geq b$ e escrevendo os limites de porção como $-x \geq -M$, o modelo linear fica
+na forma primal abaixo. O dual associa uma variável $y_k \geq 0$ a cada restrição $k$
+de $Ax \geq b$ e uma variável $u_i \geq 0$ a cada limite de porção:
 \begin{align}
-\text{Primal:} \quad & \min \ c^\top x \quad \text{s.a.} \quad A x \geq b, \quad x \geq 0 \label{eq:primal}\\
-\text{Dual:} \quad & \max \ b^\top y \quad \text{s.a.} \quad A^\top y \leq c, \quad y \geq 0 \label{eq:dual}
+\text{Primal:} \quad & \min \ c^\top x \quad \text{s.a.} \quad A x \geq b, \quad -x \geq -M, \quad x \geq 0 \label{eq:primal}\\
+\text{Dual:} \quad & \max \ b^\top y - M^\top u \quad \text{s.a.} \quad A^\top y - u \leq c, \quad y, u \geq 0 \label{eq:dual}
 \end{align}
 No ótimo, $y_k$ é o preço-sombra da restrição $k$: quanto o custo mínimo varia se o
-lado direito $b_k$ aumentar uma unidade, mantida a mesma base ótima. Pela folga
+lado direito $b_k$ aumentar uma unidade, dentro do intervalo em que a base ótima não
+muda. Quando a solução é degenerada, o que é comum em dietas, os preços-sombra podem não
+ser únicos; os valores apresentados são os da base encontrada pelo Simplex. Pela folga
 complementar, $y_k \neq 0$ apenas para restrições ativas, isto é, atendidas exatamente
 no limite. Nas tabelas, os preços-sombra são apresentados no sentido original de cada
 restrição: para restrições de mínimo eles são positivos (exigir mais encarece a dieta)
 e, para restrições de máximo, negativos (afrouxar o teto barateia a dieta). Pela
-dualidade forte, o custo ótimo é igual à soma $\sum_k y_k b_k$, somada à parcela
-associada aos limites de porção $M_i$; o produto $y_k b_k$ indica, portanto, quanto do
-custo total cada exigência explica. Na prática, os preços-sombra respondem à pergunta que motiva o trabalho:
+dualidade forte, $c^\top x^* = \sum_k y_k^* b_k - \sum_i M_i u_i^*$: o produto $y_k b_k$
+indica quanto do custo total cada exigência explica, e o termo $-\sum_i M_i u_i$
+(negativo) corresponde aos limites de porção que estão ativos. Na prática, os preços-sombra respondem à pergunta que motiva o trabalho:
 quanto custa, em reais por dia, cada grama de proteína ou cada miligrama de ferro
 exigido a mais por um perfil.
 
 \subsection{Simplex de Duas Fases}
 
-O Simplex foi implementado na forma de tableau. Antes de iniciar, o problema passa por
-três transformações: as variáveis são deslocadas pelo limite inferior ($x = \ell + x'$),
-os limites superiores finitos viram restrições $x'_i \leq M_i - \ell_i$, e cada linha
-com lado direito negativo é multiplicada por $-1$, com a troca do sentido da
-desigualdade. Em seguida, entram variáveis de folga nas restrições $\leq$, de excesso
-nas restrições $\geq$ e artificiais nas restrições $\geq$ e $=$.
+O Simplex foi implementado na forma de tableau. Limites inferiores, que surgem nos
+ramos do Branch and Bound ($x_j \geq \lceil \bar{x}_j \rceil$), são tratados pelo
+deslocamento $x = \ell + x'$; os limites superiores viram restrições
+$x'_i \leq M_i - \ell_i$; linhas com lado direito negativo são multiplicadas por $-1$;
+e entram folgas nas restrições $\leq$, excessos nas $\geq$ e artificiais nas $\geq$ e
+$=$.
 
-A fase~1 minimiza a soma das artificiais a partir da base formada por folgas e
-artificiais. Se o mínimo for positivo, não existe dieta que atenda a todas as
-restrições do perfil, e o método informa inviabilidade. Caso contrário, as artificiais
-que permanecem na base com valor zero são retiradas por pivoteamento, e a fase~2
-otimiza a função objetivo original a partir da base factível obtida.
+A fase~1 minimiza a soma das artificiais; se o mínimo for positivo, nenhuma dieta
+atende ao perfil e o método informa inviabilidade. Caso contrário, as artificiais que
+restam na base com valor zero são retiradas por pivoteamento, e a fase~2 otimiza o
+objetivo original a partir dessa base factível.
 
 Em cada iteração, a coluna que entra é a de custo reduzido mais negativo (regra de
 Dantzig), e a linha que sai é escolhida pelo teste da razão mínima, com desempate pelo
@@ -374,7 +391,9 @@ x_j \leq \lfloor \bar{x}_j \rfloor \qquad \text{ou} \qquad x_j \geq \lceil \bar{
 \end{equation}
 em que $j$ é a variável mais fracionária, isto é, a de parte fracionária mais próxima
 de 0,5. A busca começa mergulhando em profundidade, visitando primeiro o filho de
-melhor relaxação, até encontrar a primeira solução inteira. A partir daí, passa a
+melhor relaxação, até obter a primeira solução inteira, seja como relaxação inteira de
+um nó, seja pela heurística de arredondamento descrita adiante; os nós ainda na pilha
+do mergulho são processados antes dos demais. A partir daí, passa a
 explorar sempre o nó aberto de melhor limite (\textit{best-bound}), o que fecha mais
 rápido a distância entre o limite inferior e a melhor solução conhecida.
 
@@ -433,7 +452,7 @@ corresponde a um alimento excluído pelo perfil ($M_i = 0$).}\label{fig:cromosso
 A população inicial tem 200 indivíduos gerados de forma aleatória, com cada gene
 sorteado uniformemente em $\{0, \dots, M_i\}$. Essa escolha garante diversidade desde
 o início, mas faz com que quase nenhuma dieta inicial seja factível, já que dificilmente
-uma combinação aleatória atende a 18 restrições ao mesmo tempo. Cabe à seleção e à
+uma combinação aleatória atende a 17 restrições ao mesmo tempo. Cabe à seleção e à
 busca local conduzir a população para a região factível.
 
 \subsubsection{Avaliação}
@@ -475,21 +494,23 @@ saltos maiores. Os valores são sempre truncados aos limites $[0, M_i]$.
 
 A cada geração, os seis indivíduos de elite passam por uma descida na vizinhança
 formada por dois tipos de movimento: somar ou subtrair uma porção de um alimento e
-trocar uma porção de um alimento por uma de outro. São $2n + n(n-1)$ vizinhos por
-indivíduo, avaliados de forma vetorizada. O melhor vizinho, segundo as mesmas regras
-de Deb, substitui o indivíduo se for melhor, e o processo se repete até não haver
-melhoria ou até $n = 37$ passos por indivíduo e geração. A combinação de algoritmo genético com busca local caracteriza um algoritmo
-memético e se mostrou necessária: sem ela, o algoritmo raramente saía da região
-infactível.
+trocar uma porção de um alimento por uma de outro. São $2n + n(n-1)$ vizinhos, avaliados de forma
+vetorizada; o melhor, pelas regras de Deb, substitui o indivíduo se for melhor, até não
+haver melhoria ou até $n = 37$ passos. Essa busca local torna o algoritmo memético e se
+mostrou necessária: sem ela, a população raramente saía da região infactível.
 
 \subsubsection{Condição de parada}
 
 O algoritmo encerra após 500 gerações, sem critério de estagnação. A melhor solução
 é a primeira da população final ordenada pelas regras de Deb. Como o método é
 estocástico, cada instância foi resolvida com 10 sementes aleatórias diferentes. A
-Tabela~\ref{tab:parametros} resume os parâmetros, definidos em testes preliminares
-com poucas sementes, nos quais populações e números de gerações menores produziram
-soluções mais distantes do ótimo. A taxa de mutação de $1{,}5/n$ altera em média 1,5 gene por filho, o que
+Tabela~\ref{tab:parametros} resume os parâmetros, escolhidos comparando duas configurações nas 27 instâncias inteiras, com três
+sementes cada: uma menor (população de 120, 300 gerações e elite de 4) teve desvio médio
+de 9{,}2\% em relação ao ótimo, contra 6{,}4\% da adotada, com
+5{,}3~s contra 13{,}2~s por execução na mesma rodada. Como a
+escolha usou as mesmas instâncias da avaliação, os desvios reportados para o Genético
+tendem a ser um pouco otimistas. A taxa de mutação de $1{,}5/n$ altera em média 1,5 gene por
+filho, o que
 preserva a maior parte da dieta herdada.
 
 \begin{table}[ht]
@@ -527,8 +548,8 @@ Core~7 240H com 32~GB de RAM, no Windows~11.
 \section{Resultados}\label{sec:resultados}
 
 O Simplex resolveu as 63 instâncias lineares com os mesmos valores ótimos do CBC, com
-diferença absoluta máxima de $2{,}2 \cdot 10^{-5}$ no valor da função objetivo e de
-$3{,}2 \cdot 10^{-7}$ nos preços-sombra, usando em média 58 pivôs. Nenhum perfil foi
+diferença absoluta máxima de $1{,}7 \cdot 10^{-5}$ no valor da função objetivo e de
+$3{,}2 \cdot 10^{-7}$ nos preços-sombra, usando em média 61 pivôs. Nenhum perfil foi
 inviável, o que confirma que a base de alimentos permite atender a todas as exigências
 mesmo com as exclusões.
 
@@ -537,13 +558,13 @@ mesmo com as exclusões.
 A Tabela~\ref{tab:custo} mostra a dieta de custo mínimo de cada perfil. A do adulto de
 referência custa R\$~9{,}00 por dia e já não contém glúten, por isso o perfil
 celíaco custa o mesmo: excluir um alimento só encarece a dieta se ele estiver na
-solução ótima. O mesmo raciocínio explica a pequena diferença do perfil intolerante à
-lactose, cujo custo depende apenas de substituir o cálcio do leite. O atleta custa
-R\$~13{,}99 (55\% a mais), por causa da energia e da proteína mínimas
+solução ótima. Já no perfil intolerante à lactose o leite estava na solução, e substituí-lo como
+fonte de cálcio custa apenas R\$~0{,}30 (3\%). O atleta custa
+R\$~14{,}11 (57\% a mais), por causa da energia e da proteína mínimas
 mais altas, e somar a exclusão de carnes eleva o custo para R\$~14{,}21. O número
-de pivôs varia com o perfil, mas não segue as exclusões de forma simples: o celíaco
-precisou de 41 pivôs, menos que os 51 do adulto de referência,
-enquanto o vegano precisou de 118.
+de pivôs variou de 40 a 116 entre os perfis; os maiores valores
+ocorreram no vegetariano (87) e no vegano (116), que excluem mais
+alimentos, contra 52 do adulto de referência.
 
 \begin{table}[ht]
 \centering
@@ -555,12 +576,14 @@ enquanto o vegano precisou de 118.
 \subsection{Comparação entre Funções Objetivo}
 
 A Tabela~\ref{tab:conflito} avalia, para o atleta, a dieta ótima de cada função
-objetivo em todos os critérios. Maximizar proteína leva ao teto de 180~g, mas custa
-R\$~24{,}04 contra R\$~13{,}99 da dieta mais barata; minimizar o peso
+objetivo em todos os critérios. Como várias funções objetivo têm ótimos alternativos,
+usou-se desempate lexicográfico: fixado o valor ótimo do critério principal, escolhe-se
+entre as dietas empatadas a de menor custo, o que evita comparar soluções escolhidas
+arbitrariamente pelo Simplex. Maximizar proteína leva ao teto de 180~g, mas custa
+R\$~18{,}28 contra R\$~14{,}11 da dieta mais barata; minimizar o peso
 total gera a dieta mais concentrada, mas com 1.891~mg de sódio. Minimizar
-calorias ou gordura apenas encosta nos limites mínimos do perfil: nesses casos, os
-limites pesam mais que o critério, e a escolha entre as muitas dietas que empatam no
-objetivo fica a cargo do método de solução.
+calorias ou gordura leva exatamente à dieta mais barata, porque ela já está no mínimo de
+energia e de gordura do perfil: nesses casos os limites pesam mais que o critério.
 
 \begin{table}[ht]
 \centering
@@ -579,9 +602,11 @@ preço-sombra abaixo de R\$~0,003 por kcal; como o limite é grande, porém, ela
 R\$~3{,}82 dos R\$~9{,}00 do adulto de referência (43\%) e
 R\$~8{,}06 no subpeso (69\%), sendo um dos maiores itens de custo.
 
-Cada grama a mais de proteína custa R\$~0{,}071 ao atleta e
-R\$~0{,}106 ao atleta vegetariano (50\% a mais), e a proteína
-explica R\$~9{,}18 do custo do atleta. O ferro custa R\$~0{,}084 por
+Cada grama a mais de proteína custa R\$~0{,}083 ao atleta e
+R\$~0{,}106 ao atleta vegetariano (27\% a mais). A proteína
+explica R\$~10{,}84 do custo do atleta e, no atleta vegetariano,
+R\$~13{,}74 dos R\$~14{,}21 (97\%): sem carnes, quase todo
+o custo da dieta vem de atingir a proteína mínima. O ferro custa R\$~0{,}084 por
 mg ao adulto de referência e R\$~0{,}236 ao vegetariano, para quem passa a ser a
 exigência de maior peso (R\$~3{,}30, à frente do cálcio, com
 R\$~3{,}03). No vegano o quadro muda: tofu e leguminosas suprem o ferro a custo
@@ -611,16 +636,21 @@ limite, em R\$). A linha dos limites de porção completa a soma pela dualidade 
 A Figura~\ref{fig:pareto}(a) aplica o método $\varepsilon$-restrito a custo e proteína.
 As curvas são lineares por partes, e a inclinação de cada trecho é o preço-sombra da
 proteína naquele intervalo, o que liga a análise dual à análise multiobjetivo. Para o
-atleta, a inclinação vai de R\$~0{,}071 a R\$~0{,}083 por grama
-ao longo da curva, quase constante. A curva do vegano é bem mais íngreme: a inclinação
+atleta, a inclinação é constante, de R\$~0{,}083 por grama em toda a curva,
+porque a mesma base continua ótima. A curva do vegano é bem mais íngreme: a inclinação
 sobe de zero, enquanto a exigência de proteína ainda não é ativa, até
 R\$~0{,}476 por grama, e o custo vai de
 R\$~10{,}62 a R\$~22{,}24 até 140~g de proteína. Sem
 produtos animais, cada grama a mais fica cada vez mais caro, porque as fontes vegetais
 baratas se esgotam nos limites $M_i$ e o modelo passa a recorrer a tofu e oleaginosas.
-Na Figura~\ref{fig:pareto}(b), a soma ponderada encontra apenas vértices da fronteira
-custo $\times$ sódio, concentrados nas pontas, enquanto o $\varepsilon$-restrito traça
-a curva inteira, incluindo o trecho intermediário que a soma ponderada não alcança.
+Na Figura~\ref{fig:pareto}(b), a soma ponderada com 11 pesos uniformes encontra
+apenas 7 vértices distintos da fronteira custo $\times$ sódio, quase todos no extremo
+de sódio baixo. Como o modelo é linear, a fronteira é convexa e todo vértice pode ser
+alcançado por algum peso: somando 8 pesos entre 0,95 e 0,999 aos 11 uniformes, a soma
+ponderada chega a 12 vértices, inclusive no trecho intermediário. A diferença prática é que a
+escolha dos pesos não controla onde os pontos caem, enquanto o $\varepsilon$-restrito
+percorre a curva com espaçamento controlado, o que o torna mais adequado para mostrar a
+troca entre os critérios.
 
 \begin{figure}[ht]
 \centering
@@ -631,28 +661,25 @@ a curva inteira, incluindo o trecho intermediário que a soma ponderada não alc
 \subsection{Branch and Bound versus Algoritmo Genético}
 
 O Branch and Bound chegou ao ótimo nas 27 instâncias inteiras, igual ao CBC, com média
-de 526 nós (máximo de 2.471). Exigir porções inteiras encarece a dieta
+de 527 nós (máximo de 1.706). Exigir porções inteiras encarece a dieta
 de custo mínimo em média 4{,}7\% em relação à relaxação linear
-(5{,}1\% considerando também sódio e peso total), o preço de não poder servir,
-por exemplo, 0,37 copo de leite. O Genético achou soluções factíveis em todas as
-270 execuções, mas ficou em média 5{,}9\% acima do ótimo e chegou ao ótimo
-em 14\% delas. A Tabela~\ref{tab:inteiro} detalha os casos de custo mínimo,
-e a Tabela~\ref{tab:inteiro_resumo} resume as três funções objetivo: o desvio médio
-foi de 3{,}2\% no custo, 10{,}5\% no sódio e 4{,}0\% no
-peso total, e a pior execução ficou 82{,}3\% acima do ótimo.
+(5{,}6\% considerando também sódio e peso total), o preço de não poder servir,
+por exemplo, 2{,}34 porções de arroz integral cozido. O Genético achou soluções factíveis em todas as
+270 execuções, mas ficou em média 6{,}0\% acima do ótimo e chegou ao ótimo
+em 15\% delas; a mediana do desvio por instância foi de 3{,}5\%,
+porque a média é puxada por uma única instância difícil. A
+Tabela~\ref{tab:inteiro_resumo} resume as três funções objetivo, e os valores por perfil
+estão em \texttt{resultados/e5\_inteiro.csv}: o desvio médio
+foi de 3{,}4\% no custo, 10{,}6\% no sódio e 4{,}0\% no
+peso total, e a pior execução ficou 86{,}2\% acima do ótimo.
 
-\begin{table}[ht]
-\centering
-\caption{Custo mínimo com porções inteiras (R\$): relaxação linear, Branch and Bound e
-Algoritmo Genético (10 sementes).}\label{tab:inteiro}
-\footnotesize
-\input{tabelas/inteiro}
-\end{table}
+
 
 \begin{table}[ht]
 \centering
 \caption{Modelo inteiro por função objetivo: custo da integralidade (B\&B sobre a
-relaxação linear) e desempenho do Algoritmo Genético em relação ao ótimo.}\label{tab:inteiro_resumo}
+relaxação linear) e desempenho do Algoritmo Genético em relação ao ótimo (10 sementes
+por instância).}\label{tab:inteiro_resumo}
 \footnotesize
 \input{tabelas/inteiro_resumo}
 \end{table}
@@ -661,11 +688,13 @@ O pior desempenho do Genético está no sobrepeso com sódio mínimo, em que ene
 proteína e carboidrato apertam ao mesmo tempo e a região factível fica estreita: a busca
 para em ótimos locais dos quais a vizinhança de uma porção não consegue sair. A
 Figura~\ref{fig:conv} mostra o comportamento típico, no caso do atleta com custo
-mínimo. O melhor valor é alcançado nas primeiras gerações, graças à busca local na
-elite, e quase não muda depois; um critério de parada por estagnação reduziria muito o
-tempo de execução sem perda de qualidade. Ao mesmo tempo, entre 30\% e 50\% da
-população permanece factível ao longo da busca, sinal de que a mutação de uma porção
-leva facilmente para fora dos limites nutricionais.
+mínimo. O custo do melhor indivíduo cai quase todo nas primeiras gerações, graças à busca local
+na elite. Depois disso as melhorias são raras, mas algumas sementes ainda melhoram entre
+as gerações 150 e 400, e nenhuma chega ao ótimo do Branch and Bound; um critério de
+parada por estagnação reduziria o tempo de execução, mas perderia essas melhorias
+tardias. A fração factível da população sobe de menos de 5\% para algo entre 20\% e 50\%
+nas primeiras 50 gerações e oscila nessa faixa até o fim, sinal de que a mutação de uma
+porção leva facilmente para fora dos limites nutricionais.
 
 \begin{figure}[ht]
 \centering
@@ -676,15 +705,20 @@ melhor indivíduo factível; (b) fração factível da população.}\label{fig:c
 
 \subsection{Cardápios Gerados}
 
-A Tabela~\ref{tab:cardapio} mostra três cardápios de custo mínimo com porções inteiras,
-e a Figura~\ref{fig:composicao}, a origem da energia em cada perfil. Arroz, feijão,
-leite e laranja aparecem em quase todos, por serem fontes baratas de energia, proteína,
-cálcio e vitamina~C. O fígado entra nos perfis com mais exigência de proteína e ferro,
-por ser a fonte animal mais barata desses dois nutrientes. O cardápio vegano troca o
-leite e o fígado por grão-de-bico e tofu, que respondem pela proteína, pelo ferro e
-pelo cálcio, e mantém o azeite para atingir a gordura mínima. Já o cardápio de
-sobrepeso reduz os cereais e apoia a energia em leguminosas e leite, porque o teto de
-carboidrato é uma das restrições ativas. Como todo modelo de custo mínimo, o resultado
+A Tabela~\ref{tab:cardapio} mostra os cardápios de custo mínimo com porções inteiras
+das quatro demandas centrais do trabalho (sobrepeso, subpeso, atleta e vegetariano) e
+do vegano, e a Figura~\ref{fig:composicao}, a origem da energia em cada perfil; os nove
+cardápios estão no repositório, em \texttt{resultados/cardapios.md}. Arroz, feijão e
+laranja aparecem em quase todos, por serem fontes baratas de energia, proteína, fibra
+e vitamina~C. Sem o fígado, as fontes animais mais baratas passam a ser a sardinha,
+que traz proteína e cálcio, e o ovo. O cardápio de sobrepeso reduz os cereais e apoia
+a energia em leguminosas, sardinha e ovos, porque o teto de carboidrato é uma das
+restrições ativas, enquanto o de subpeso chega às 2.800~kcal com cereais, feijão,
+azeite e pasta de amendoim. O cardápio inteiro do atleta não usa carne: ovos, leite
+desnatado, grão-de-bico e pasta de amendoim atingem a proteína a menor custo, e por
+isso ele coincide com o do atleta vegetariano. O vegetariano combina leguminosas, ovo
+e leite, e o vegano troca o leite por grão-de-bico e tofu, que respondem pela proteína,
+pelo ferro e pelo cálcio, e mantém o azeite para atingir a gordura mínima. Como todo modelo de custo mínimo, o resultado
 tende à monotonia \cite{garille2001}: os alimentos baratos chegam ao limite máximo de
 porções. Os limites $M_i$ e a exigência de frutas e hortaliças reduzem esse efeito, e
 restrições de variedade adicionais poderiam ser incluídas sem mudar a estrutura do
@@ -707,13 +741,13 @@ modelo.
 
 A Tabela~\ref{tab:tempos} resume os tempos, medidos com a máquina dedicada aos
 experimentos. O Simplex resolve cada instância linear em milissegundos. O Branch and
-Bound leva em média 1{,}1~s (no máximo 4{,}3~s) e garante o ótimo; o
-Genético leva 3{,}2~s por execução e não garante. O Branch and Bound foi mais
+Bound leva em média 3{,}2~s (no máximo 7{,}7~s) e garante o ótimo; o
+Genético leva 9{,}1~s por execução e não garante. O Branch and Bound foi mais
 rápido que o Genético em 26 das 27 instâncias. Neste tamanho de problema
-(37 variáveis e até 18 restrições), o Branch and Bound domina o Genético em qualidade e,
+(37 variáveis e 17 restrições, além dos limites de porção), o Branch and Bound domina o Genético em qualidade e,
 na maior parte das instâncias, também em tempo.
 
-\begin{table}[ht]
+\begin{table}[!htbp]
 \centering
 \caption{Custo computacional por método.}\label{tab:tempos}
 \footnotesize
@@ -725,19 +759,21 @@ na maior parte das instâncias, também em tempo.
 Com base em 90 instâncias, que combinam nove perfis nutricionais com até sete funções
 objetivo, observou-se que o Simplex e o Branch and Bound implementados pelo grupo
 coincidiram com o resolvedor CBC em todos os casos, enquanto o Algoritmo Genético
-ficou em média 5{,}9\% acima do ótimo. A análise dual mostrou o que encarece cada
-dieta: a energia, barata por kcal mas responsável por 43\% do custo do
-adulto de referência; a proteína para o atleta, 50\% mais cara sem
-carnes; o ferro para o vegetariano e o cálcio para o vegano; e o teto de carboidrato
-na dieta de emagrecimento. As fronteiras
-de Pareto tornam visível a troca entre custo, proteína e sódio, e mostram que a soma
-ponderada não basta para descrever essa troca.
+ficou em média 6{,}0\% acima do ótimo (mediana de 3{,}5\%). A análise
+dual mostrou o que encarece cada dieta: a energia, barata por kcal mas responsável por
+43\% do custo do adulto de referência; a proteína para o atleta,
+27\% mais cara sem carnes e responsável por 97\% do custo do
+atleta vegetariano; o ferro para o vegetariano e o cálcio para o vegano; e o teto de
+carboidrato na dieta de emagrecimento. As fronteiras de Pareto tornam visível a troca
+entre custo, proteína e sódio; no caso linear a soma ponderada também alcança os
+vértices da fronteira, mas distribui mal os pontos ao longo dela, o que favorece o
+$\varepsilon$-restrito.
 
 O resultado central é que, neste tamanho de problema, os métodos exatos bastam: o
 Branch and Bound gera porções que podem ser servidas, com otimalidade garantida, em
 poucos segundos, e exigir porções inteiras encarece a dieta de custo mínimo em apenas
-4{,}7\% sobre o modelo linear. O Genético se mostra útil como base para extensões não lineares, mas
-perde para o método exato quando o modelo é linear. Os limites nutricionais e os preços
+4{,}7\% sobre o modelo linear. O Genético se mostra útil como base para extensões
+não lineares, mas perde para o método exato quando o modelo é linear. Os limites nutricionais e os preços
 são premissas didáticas, e o modelo não substitui a orientação de um nutricionista.
 
 As contribuições deste trabalho são três. Primeiro, uma formulação do problema da dieta
@@ -751,8 +787,9 @@ comparação controlada entre um método exato e uma metaheurística no modelo d
 inteiras, com os três métodos implementados do zero, validados contra o CBC e
 disponibilizados em código aberto junto com uma interface web de demonstração.
 
-Para a continuidade, recomendam-se os seguintes desdobramentos: (i) ampliar a base de alimentos e de nutrientes, incluindo vitamina
-B12, zinco e ômega-3, críticos para veganos; (ii) dividir o cardápio em refeições e
+Para a continuidade, recomendam-se os seguintes desdobramentos: (i) ampliar a base de
+alimentos e de nutrientes, incluindo vitamina B12, zinco e ômega-3, críticos para
+veganos, e criar perfis femininos, com ferro e vitamina~C próprios; (ii) dividir o cardápio em refeições e
 incluir preferências do usuário, caso em que o modelo deixa de ser linear e o
 Algoritmo Genético passa a ter vantagem sobre os métodos exatos; e (iii) usar preços
 reais coletados em mercados e avaliar a sensibilidade das dietas à variação de preços.

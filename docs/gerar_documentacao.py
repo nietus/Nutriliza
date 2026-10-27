@@ -17,6 +17,7 @@ sys.path.insert(0, str(RAIZ / "docs"))
 
 from modelo_docx import Documento  # noqa: E402
 from nutriliza import OBJETIVOS, PERFIS  # noqa: E402
+from nutriliza.exemplo import porcao_mais_fracionaria  # noqa: E402
 
 RES, FIG = RAIZ / "resultados", RAIZ / "figuras"
 INTEGRANTES = ["Antonio Soares Couto Neto", "Rodrigo Drummond", "Thales Matheus"]
@@ -51,6 +52,8 @@ def main():
     e5 = pd.read_csv(RES / "e5_inteiro.csv")
     e7 = pd.read_csv(RES / "e7_cardapios.csv")
     custo = e1[e1.objetivo == "custo"].set_index("perfil")
+    ex = porcao_mais_fracionaria("atleta", "custo")
+    bb_atleta = float(e5[(e5.perfil == "atleta") & (e5.objetivo == "custo")].bb.iloc[0])
     piv = e3.pivot_table(index="restricao", columns="perfil", values="preco_sombra")
     imp = e3.pivot_table(index="restricao", columns="perfil", values="impacto")
 
@@ -90,16 +93,22 @@ def main():
     # 3 ---------------------------------------------------------------
     d.secao("3. Modelo")
     d.paragrafo(
-        "A base tem 37 alimentos comuns no Brasil, com composição da tabela TACO (NEPA-UNICAMP, 2011), "
-        "porção caseira, preço e marcadores de carne, origem animal, lactose e glúten. A variável xᵢ é o "
-        "número de porções do alimento i por dia, e aⱼᵢ é a quantidade do nutriente j em uma porção:")
+        "A base tem 37 alimentos comuns no Brasil, com composição da tabela TACO (NEPA-UNICAMP, 2011) "
+        "para 30 deles, da base FoodData Central do USDA (2019) para cinco que não estão na TACO "
+        "(grão-de-bico e macarrão cozidos, tilápia, pasta de amendoim e tofu) e de rótulos para a "
+        "bebida de soja e o whey. Cada alimento tem porção caseira, preço e marcadores de carne, origem "
+        "animal, lactose e glúten. A variável xᵢ é o número de porções do alimento i por dia, e aⱼᵢ é a "
+        "quantidade do nutriente j em uma porção:")
     d.equacao("min ou max  Z = Σᵢ cᵢ xᵢ")
     d.equacao("sujeito a   Lⱼ ≤ Σᵢ aⱼᵢ xᵢ ≤ Uⱼ   (9 nutrientes)")
     d.equacao("frutas e hortaliças ≥ 400 g,   0 ≤ xᵢ ≤ Mᵢ,   xᵢ = 0 para alimentos proibidos")
     d.paragrafo(
         "Os nutrientes são energia, proteína, carboidrato, gordura, fibra, cálcio, ferro, sódio e "
         "vitamina C. No modelo linear as porções podem ser fracionadas; no modelo inteiro, não. Cada "
-        "perfil muda os limites Lⱼ e Uⱼ e a lista de alimentos proibidos (Quadro 1).")
+        "perfil muda os limites Lⱼ e Uⱼ e a lista de alimentos proibidos (Quadro 1). Todos os perfis são "
+        "de homens adultos. Dois cuidados: o sódio é só o dos alimentos, porque as preparações da TACO "
+        "são sem sal; e o fígado fica fora dos cardápios diários, porque 100 g passam várias vezes o "
+        "limite de vitamina A, nutriente que o modelo não controla.")
     linhas = []
     for cfg in PERFIS.values():
         l = cfg["limites"]
@@ -108,8 +117,9 @@ def main():
     d.tabela("Perfis nutricionais (limites diários)",
              ["Perfil", "Energia (kcal)", "Proteína (g)", "Ferro (mg)", "Exclui"],
              linhas, [3, 1.4, 1.2, 1, 1.8], tipo="Quadro",
-             fonte="Fonte: elaboração do grupo com base nas DRIs (IOM, 2006), na OMS (WHO, 2012) e em "
-                   "Thomas, Erdman e Burke (2016). Os demais limites estão em nutriliza/perfis.py.")
+             fonte="Fonte: elaboração do grupo com base em INSTITUTE OF MEDICINE (2006), WORLD HEALTH "
+                   "ORGANIZATION (2012) e Thomas, Erdman e Burke (2016). Os demais limites estão em "
+                   "nutriliza/perfis.py.")
     d.paragrafo("As funções objetivo disponíveis são:")
     d.lista([", ".join(rot for rot, _, _ in OBJETIVOS.values()) + ".",
              "Combinação de dois critérios por soma ponderada ou pelo método ε-restrito, que gera a "
@@ -119,7 +129,7 @@ def main():
     d.secao("4. Métodos de solução")
     d.paragrafo(
         "Os três métodos foram implementados pelo grupo em Python, sem bibliotecas de otimização; o "
-        "resolvedor CBC foi usado só para conferir as respostas. Todos recebem o mesmo modelo e devolvem "
+        "resolvedor CBC (FORREST; LOUGEE-HEIMER, 2005) foi usado só para conferir as respostas. Todos recebem o mesmo modelo e devolvem "
         "uma dieta, mas resolvem versões diferentes dele: o Simplex resolve o modelo linear (porções "
         "fracionadas), e o Branch and Bound e o Genético resolvem o modelo inteiro (porções inteiras). "
         "A Figura 1 mostra como as peças se ligam.")
@@ -133,7 +143,7 @@ def main():
               ["Garante o ótimo?", "Sim", "Sim", "Não"],
               ["O que devolve além da dieta", "Preços-sombra (duais)", "Nós explorados e limite",
                "Curva de convergência"],
-              ["Arquivo", "nutriliza/simplex.py", "nutriliza/branch_and_bound.py", "nutriliza/genetico.py"]],
+              ["Arquivo (em nutriliza/)", "simplex.py", "branch_and_bound.py", "genetico.py"]],
              [2.2, 2.4, 2.4, 2.4], fonte="Fonte: elaboração do grupo.")
 
     d.subsecao("4.1 Simplex de duas fases")
@@ -156,9 +166,10 @@ def main():
         "Dantzig) e a que sai pelo teste da razão mínima, que garante que nenhuma restrição seja "
         "violada. Quando nenhum custo reduzido é negativo, a dieta é ótima.",
         "**Proteção contra ciclos:** problemas de dieta têm muitos pivôs degenerados (que não mudam o "
-        "custo). Depois de 50 seguidos, o método passa a usar a regra de Bland (menor índice), que "
+        "custo). Depois de 50 seguidos, o método passa a usar a regra de Bland (menor índice) (BLAND, 1977), que "
         "garante que o algoritmo termina.",
-        "**Preços-sombra:** na base ótima B, o sistema Bᵀy = c_B dá a variável dual yₖ de cada "
+        "**Preços-sombra:** na base ótima B, resolver Bᵀy = c, em que c são os custos das variáveis "
+        "da base, dá a variável dual yₖ de cada "
         "restrição. Ela diz quanto o custo mínimo sobe se a exigência k aumentar uma unidade; por "
         "exemplo, quanto custa 1 g a mais de proteína.",
     ])
@@ -171,14 +182,15 @@ def main():
         "faz parte dos testes automáticos do projeto (tests/test_solvers.py).")
     d.paragrafo(
         "**Quando usar.** É o método mais rápido (milissegundos) e o único que dá os preços-sombra, mas "
-        "só resolve o modelo linear: a dieta pode sair com 2,53 copos de leite.")
+        f"só resolve o modelo linear: a dieta do atleta sai com {br(ex['valor'])} porções de "
+        f"{ex['nome'].lower()}.")
 
     d.subsecao("4.2 Branch and Bound")
     d.paragrafo(
         "**Ideia.** Para obter porções inteiras, não basta arredondar a solução do Simplex: o "
         "arredondamento pode violar alguma restrição ou deixar de ser o melhor. O Branch and Bound "
         "divide o problema em subproblemas menores (branch) e descarta os que não podem conter a melhor "
-        "dieta (bound), usando o Simplex para avaliar cada um.")
+        "dieta (bound), usando o Simplex para avaliar cada um (LAND; DOIG, 1960).")
     d.paragrafo("**Passo a passo.**")
     d.lista([
         "**Raiz:** resolve o modelo com porções fracionadas pelo Simplex. Esse valor é um limite: "
@@ -197,11 +209,12 @@ def main():
         "incumbente é comprovadamente ótima.",
     ])
     d.paragrafo(
-        "**Exemplo.** Na dieta de custo mínimo do atleta, o Simplex sugere 2,53 copos de leite e 0,85 "
-        "bife de fígado, entre outras porções fracionadas. O Branch and Bound cria os ramos \"leite ≤ "
-        "2\" e \"leite ≥ 3\", resolve cada um com o Simplex e continua ramificando as porções que "
-        "ainda saem fracionadas. A dieta inteira ótima custa R$ 14,45, contra R$ 13,99 da versão "
-        "fracionada.")
+        f"**Exemplo.** Na dieta de custo mínimo do atleta, o Simplex sugere {br(ex['valor'])} porções de "
+        f"{ex['nome'].lower()}, entre outras porções fracionadas; essa é a mais fracionária. O Branch "
+        f"and Bound cria os ramos \"{ex['nome'].lower()} ≤ {ex['piso']}\" e \"{ex['nome'].lower()} ≥ "
+        f"{ex['teto']}\", resolve cada um com o Simplex e continua ramificando as porções que ainda "
+        f"saem fracionadas. A dieta inteira ótima custa {rs(bb_atleta)}, contra {rs(ex['valor_lp'])} da "
+        f"versão fracionária.")
     d.figura(FIG / "diagrama_branch_and_bound.png", "Esquema da árvore do Branch and Bound; os nós "
              "sombreados são podados", largura_cm=15)
     nos_medio = br(e5.bb_nos.mean(), 0)
@@ -214,8 +227,8 @@ def main():
     d.paragrafo(
         "**Ideia.** Inspirado na evolução natural, o Algoritmo Genético mantém uma população de dietas "
         "que se combinam e sofrem pequenas mudanças. As melhores têm mais chance de passar adiante, e a "
-        "população melhora geração após geração. Não usa o Simplex nem precisa que o modelo seja "
-        "linear, mas não garante o ótimo.")
+        "população melhora geração após geração (HOLLAND, 1975). Não usa o Simplex nem precisa que o "
+        "modelo seja linear, mas não garante o ótimo.")
     d.figura(FIG / "diagrama_cromossomo.png", "Cromossomo: um gene por alimento, com o número de "
              "porções; o gene sombreado é de um alimento excluído pelo perfil", largura_cm=13)
     d.paragrafo("**Passo a passo.**")
@@ -227,12 +240,12 @@ def main():
         "**Avaliação:** cada dieta recebe o valor do objetivo (por exemplo, o custo) e a violação total, "
         "a soma de quanto cada restrição foi desrespeitada, dividida pelo seu limite para pôr kcal, "
         "gramas e miligramas na mesma escala.",
-        "**Seleção (torneio binário com regras de Deb):** sorteiam-se duas dietas e fica a melhor: uma factível "
+        "**Seleção (torneio binário com regras de Deb (DEB, 2000)):** sorteiam-se duas dietas e fica a melhor: uma factível "
         "sempre vence uma infactível; entre factíveis vence a de menor custo; entre infactíveis vence a "
         "de menor violação. Assim não é preciso calibrar um peso de penalidade.",
         "**Cruzamento uniforme (90%):** o filho herda cada alimento de um dos dois pais, sorteado.",
         "**Mutação:** cada gene tem chance de 1,5/37 (cerca de 4%) de ganhar ou perder uma porção, o "
-        "que muda em média 1,5 alimento por filho, e chance quatro vezes menor de ser sorteado de novo.",
+        "que muda em média 1,5 alimento por filho, e chance quatro vezes menor de receber um valor novo, sorteado entre 0 e Mᵢ.",
         "**Elitismo e busca local:** as 6 melhores dietas passam direto para a próxima geração e são "
         "refinadas testando +1/−1 porção de cada alimento e trocas de uma porção entre dois alimentos, "
         "aceitando a melhor mudança, por até 37 passos. Sem essa busca local, o algoritmo raramente "
@@ -299,15 +312,16 @@ def main():
         f"{br(e5[e5.objetivo == 'custo'].gap_integralidade_pct.mean(), 1)}% em relação ao modelo "
         f"linear.")
 
-    d.subsecao("5.4 Exemplo de cardápio")
-    c = e7[e7.perfil == "atleta"]
-    d.tabela("Cardápio de custo mínimo do atleta (porções inteiras)",
-             ["Alimento", "Porções", "Medida caseira", "Custo"],
-             [[r.nome, br(r.porcoes, 0), r.medida, rs(r.custo)] for r in c.itertuples()]
-             + [["Total", "", "", rs(c.custo.sum())]],
-             [3.2, 1, 2.8, 1.2], alinhar_direita={1, 3},
-             fonte="Fonte: elaboração do grupo. Os cardápios dos nove perfis estão em "
-                   "resultados/cardapios.md.")
+    d.subsecao("5.4 Cardápios")
+    linhas_c = []
+    for perfil in ["sobrepeso", "subpeso", "atleta", "vegetariano", "vegano"]:
+        c = e7[e7.perfil == perfil]
+        itens = "; ".join(f"{int(round(r.porcoes))} × {r.medida} de {r.nome.lower()}" for r in c.itertuples())
+        linhas_c.append([PERFIS[perfil]["nome"], itens, rs(c.custo.sum())])
+    d.tabela("Cardápios de custo mínimo (porções inteiras) de cinco perfis",
+             ["Perfil", "Cardápio diário", "Custo"], linhas_c, [2.2, 7.2, 1.1], alinhar_direita={2},
+             fonte="Fonte: elaboração do grupo. Os cardápios dos nove perfis, com os totais de "
+                   "nutrientes, estão em resultados/cardapios.md.")
 
     # 6 ---------------------------------------------------------------
     d.secao("6. Como executar")
@@ -317,7 +331,8 @@ def main():
         "**Interface web:** python web/app.py e abrir http://localhost:8000. A página permite escolher "
         "perfil, função objetivo e método, editar os limites e comparar os três métodos.",
     ])
-    d.figura(FIG / "web_simplex.png", "Interface web: atleta, custo mínimo, Simplex", largura_cm=12)
+    d.figura(FIG / "web_simplex_topo.png", "Interface web: atleta, custo mínimo, Simplex (resumo "
+             "e cardápio do dia)", largura_cm=9)
 
     # 7 ---------------------------------------------------------------
     d.secao("7. Conclusão")
@@ -335,12 +350,14 @@ def main():
         "BLAND, R. G. New finite pivoting rules for the simplex method. *Mathematics of Operations Research*, v. 2, n. 2, p. 103–107, 1977.",
         "DANTZIG, G. B. The diet problem. *Interfaces*, v. 20, n. 4, p. 43–47, 1990.",
         "DEB, K. An efficient constraint handling method for genetic algorithms. *Computer Methods in Applied Mechanics and Engineering*, v. 186, n. 2–4, p. 311–338, 2000.",
+        "FORREST, J.; LOUGEE-HEIMER, R. CBC user guide. In: *INFORMS Tutorials in Operations Research*. INFORMS, 2005. p. 257–277.",
         "HOLLAND, J. H. *Adaptation in natural and artificial systems*. Ann Arbor: University of Michigan Press, 1975.",
         "INSTITUTE OF MEDICINE. *Dietary reference intakes: the essential guide to nutrient requirements*. Washington, DC: The National Academies Press, 2006.",
         "LAND, A. H.; DOIG, A. G. An automatic method of solving discrete programming problems. *Econometrica*, v. 28, n. 3, p. 497–520, 1960.",
         "NEPA-UNICAMP. *Tabela brasileira de composição de alimentos – TACO*. 4. ed. Campinas: NEPA-UNICAMP, 2011.",
         "STIGLER, G. J. The cost of subsistence. *Journal of Farm Economics*, v. 27, n. 2, p. 303–314, 1945.",
         "THOMAS, D. T.; ERDMAN, K. A.; BURKE, L. M. American College of Sports Medicine joint position statement: nutrition and athletic performance. *Medicine & Science in Sports & Exercise*, v. 48, n. 3, p. 543–568, 2016.",
+        "U.S. DEPARTMENT OF AGRICULTURE. Agricultural Research Service. *FoodData Central: SR Legacy*. 2019. Disponível em: https://fdc.nal.usda.gov.",
         "WORLD HEALTH ORGANIZATION. *Guideline: sodium intake for adults and children*. Geneva: WHO, 2012.",
     ]:
         d.referencia(ref)

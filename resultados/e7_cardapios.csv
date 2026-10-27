@@ -9,11 +9,9 @@ referencia,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
 referencia,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
 sobrepeso,Macarrão cozido,cereais,1.0,1 prato raso,150.0,0.6000000000000001
 sobrepeso,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
-sobrepeso,Grão-de-bico cozido,leguminosas,1.0,1 concha pequena,100.0,0.8
-sobrepeso,Fígado bovino grelhado,carnes,1.0,1 bife médio,100.0,2.5
-sobrepeso,Leite integral,laticínios,2.0,1 copo,400.0,2.2
-sobrepeso,Leite desnatado,laticínios,1.0,1 copo,200.0,1.2
-sobrepeso,Azeite de oliva,óleos,1.0,1 colher de sopa,10.0,0.4
+sobrepeso,Grão-de-bico cozido,leguminosas,2.0,1 concha pequena,200.0,1.6
+sobrepeso,Sardinha em conserva,carnes,2.0,1/2 lata,120.0,3.5999999999999996
+sobrepeso,Ovo cozido,ovos,3.0,1 unidade,150.0,2.0999999999999996
 sobrepeso,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
 sobrepeso,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
 subpeso,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000001
@@ -31,10 +29,10 @@ atleta,Arroz branco cozido,cereais,3.0,1 escumadeira cheia,450.0,0.9000000000000
 atleta,Arroz integral cozido,cereais,3.0,1 escumadeira cheia,450.0,1.3499999999999999
 atleta,Macarrão cozido,cereais,2.0,1 prato raso,300.0,1.2000000000000002
 atleta,Feijão carioca cozido,leguminosas,3.0,1 concha,420.0,1.26
-atleta,Grão-de-bico cozido,leguminosas,1.0,1 concha pequena,100.0,0.8
-atleta,Fígado bovino grelhado,carnes,1.0,1 bife médio,100.0,2.5
-atleta,Leite integral,laticínios,3.0,1 copo,600.0,3.3000000000000003
-atleta,Pasta de amendoim integral,oleaginosas,2.0,1 colher de sopa,40.0,1.4000000000000001
+atleta,Grão-de-bico cozido,leguminosas,2.0,1 concha pequena,200.0,1.6
+atleta,Ovo cozido,ovos,3.0,1 unidade,150.0,2.0999999999999996
+atleta,Leite desnatado,laticínios,2.0,1 copo,400.0,2.4
+atleta,Pasta de amendoim integral,oleaginosas,3.0,1 colher de sopa,60.0,2.1
 atleta,Laranja pera,frutas,2.0,1 unidade,360.0,1.4400000000000002
 atleta,Cenoura crua,hortaliças,1.0,3 colheres de sopa,60.0,0.3
 vegetariano,Arroz branco cozido,cereais,2.0,1 escumadeira cheia,300.0,0.6000000000000001

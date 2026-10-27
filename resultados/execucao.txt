@@ -1,46 +1,50 @@
 E1 modelo linear
   -> resultados/e1_linear.csv (63 linhas)
-E2 conflito entre funções objetivo
+E2 conflito entre funções objetivo (com desempate lexicográfico por custo)
   -> resultados/e2_conflito_atleta.csv (7 linhas)
 E3 preços-sombra
   -> resultados/e3_duais_custo.csv (43 linhas)
 E4 fronteiras de Pareto
-  -> resultados/e4_pareto.csv (104 linhas)
+  -> resultados/e4_pareto.csv (112 linhas)
 E7 cardápios de custo mínimo (porções inteiras)
-  -> resultados/e7_cardapios.csv (80 linhas)
+  -> resultados/e7_cardapios.csv (78 linhas)
 E5 modelo inteiro: B&B x Genético x CBC
-  referencia          custo   LP=    8.998 B&B=    9.480 (940 nós, 1.7s) CBC=    9.480 GA=    9.837±0.122
-  referencia          sodio   LP=   22.402 B&B=   24.800 (408 nós, 0.7s) CBC=   24.800 GA=   25.880±0.675
-  referencia          massa   LP=  836.482 B&B=  865.000 (2471 nós, 4.3s) CBC=  865.000 GA=  875.000±9.487
-  sobrepeso           custo   LP=   10.169 B&B=   10.700 (856 nós, 1.5s) CBC=   10.700 GA=   11.266±0.303
-  sobrepeso           sodio   LP=   42.272 B&B=   45.200 (276 nós, 0.5s) CBC=   45.200 GA=   77.940±2.087
-  sobrepeso           massa   LP=  718.925 B&B=  745.000 (113 nós, 0.2s) CBC=  745.000 GA=  816.000±42.767
-  subpeso             custo   LP=   11.619 B&B=   12.030 (250 nós, 0.4s) CBC=   12.030 GA=   12.403±0.217
-  subpeso             sodio   LP=   29.551 B&B=   31.400 (299 nós, 0.6s) CBC=   31.400 GA=   33.360±0.783
-  subpeso             massa   LP= 1154.308 B&B= 1190.000 (617 nós, 1.3s) CBC= 1190.000 GA= 1228.000±11.874
-  atleta              custo   LP=   13.987 B&B=   14.450 (462 nós, 1.0s) CBC=   14.450 GA=   14.974±0.209
-  atleta              sodio   LP=   55.100 B&B=   56.400 (48 nós, 0.1s) CBC=   56.400 GA=   57.700±1.218
-  atleta              massa   LP= 1229.993 B&B= 1270.000 (241 nós, 0.4s) CBC= 1270.000 GA= 1330.000±22.694
-  vegetariano         custo   LP=    9.774 B&B=   10.300 (750 nós, 2.4s) CBC=   10.300 GA=   10.565±0.214
-  vegetariano         sodio   LP=   25.052 B&B=   26.600 (110 nós, 0.3s) CBC=   26.600 GA=   26.990±0.524
-  vegetariano         massa   LP=  847.418 B&B=  900.000 (695 nós, 1.7s) CBC=  900.000 GA=  917.500±13.086
-  vegano              custo   LP=   10.624 B&B=   11.300 (576 nós, 1.9s) CBC=   11.300 GA=   11.608±0.194
-  vegano              sodio   LP=   25.052 B&B=   26.600 (109 nós, 0.3s) CBC=   26.600 GA=   26.940±0.418
-  vegano              massa   LP=  866.055 B&B=  910.000 (657 nós, 1.8s) CBC=  910.000 GA=  927.500±14.705
-  lactose             custo   LP=    9.299 B&B=    9.730 (353 nós, 0.7s) CBC=    9.730 GA=    9.802±0.091
-  lactose             sodio   LP=   22.402 B&B=   24.800 (405 nós, 0.7s) CBC=   24.800 GA=   25.605±0.716
-  lactose             massa   LP=  856.270 B&B=  900.000 (1793 nós, 2.8s) CBC=  900.000 GA=  931.000±31.369
-  celiaco             custo   LP=    8.998 B&B=    9.490 (440 nós, 0.7s) CBC=    9.490 GA=    9.744±0.126
-  celiaco             sodio   LP=   24.298 B&B=   26.400 (161 nós, 0.4s) CBC=   26.400 GA=   26.720±0.160
-  celiaco             massa   LP= 1101.782 B&B= 1130.000 (273 nós, 0.5s) CBC= 1130.000 GA= 1189.500±25.928
-  atleta_vegetariano  custo   LP=   14.211 B&B=   14.650 (675 nós, 1.7s) CBC=   14.650 GA=   15.232±0.256
-  atleta_vegetariano  sodio   LP=   55.100 B&B=   56.400 (48 nós, 0.1s) CBC=   56.400 GA=   57.450±0.795
-  atleta_vegetariano  massa   LP= 1229.993 B&B= 1270.000 (189 nós, 0.5s) CBC= 1270.000 GA= 1331.000±21.772
+  referencia          custo   LP=    8.998 B&B=    9.480 (876 nós, 3.5s) CBC=    9.480 GA=    9.861±0.140
+  referencia          sodio   LP=   22.422 B&B=   24.800 (458 nós, 2.0s) CBC=   24.800 GA=   25.810±0.853
+  referencia          massa   LP=  845.097 B&B=  900.000 (1706 nós, 7.7s) CBC=  900.000 GA=  944.000±21.307
+  sobrepeso           custo   LP=   10.373 B&B=   10.900 (334 nós, 1.4s) CBC=   10.900 GA=   11.665±0.417
+  sobrepeso           sodio   LP=   42.272 B&B=   45.200 (276 nós, 1.0s) CBC=   45.200 GA=   74.610±9.242
+  sobrepeso           massa   LP=  774.094 B&B=  835.000 (1391 nós, 6.0s) CBC=  835.000 GA=  864.000±20.712
+  subpeso             custo   LP=   11.619 B&B=   12.030 (248 nós, 1.2s) CBC=   12.030 GA=   12.450±0.247
+  subpeso             sodio   LP=   29.551 B&B=   31.400 (299 nós, 1.4s) CBC=   31.400 GA=   33.030±0.385
+  subpeso             massa   LP= 1154.308 B&B= 1200.000 (973 nós, 6.2s) CBC= 1200.000 GA= 1232.000±14.697
+  atleta              custo   LP=   14.112 B&B=   14.650 (1149 nós, 6.1s) CBC=   14.650 GA=   15.303±0.279
+  atleta              sodio   LP=   55.100 B&B=   56.400 (48 nós, 0.2s) CBC=   56.400 GA=   63.645±10.925
+  atleta              massa   LP= 1229.993 B&B= 1270.000 (215 nós, 1.2s) CBC= 1270.000 GA= 1345.000±32.558
+  vegetariano         custo   LP=    9.774 B&B=   10.300 (750 nós, 7.7s) CBC=   10.300 GA=   10.538±0.181
+  vegetariano         sodio   LP=   25.052 B&B=   26.600 (110 nós, 0.6s) CBC=   26.600 GA=   27.040±0.546
+  vegetariano         massa   LP=  847.418 B&B=  910.000 (754 nós, 5.0s) CBC=  910.000 GA=  934.500±16.651
+  vegano              custo   LP=   10.624 B&B=   11.300 (576 nós, 5.9s) CBC=   11.300 GA=   11.507±0.192
+  vegano              sodio   LP=   25.052 B&B=   26.600 (109 nós, 1.0s) CBC=   26.600 GA=   26.940±0.418
+  vegano              massa   LP=  866.150 B&B=  920.000 (815 nós, 6.3s) CBC=  920.000 GA=  941.000±17.720
+  lactose             custo   LP=    9.299 B&B=    9.730 (291 nós, 2.7s) CBC=    9.730 GA=    9.827±0.087
+  lactose             sodio   LP=   22.422 B&B=   24.800 (456 nós, 3.9s) CBC=   24.800 GA=   25.410±0.617
+  lactose             massa   LP=  865.449 B&B=  920.000 (754 nós, 4.5s) CBC=  920.000 GA=  952.000±21.354
+  celiaco             custo   LP=    8.998 B&B=    9.490 (393 nós, 2.7s) CBC=    9.490 GA=    9.700±0.129
+  celiaco             sodio   LP=   24.298 B&B=   26.400 (161 nós, 1.6s) CBC=   26.400 GA=   26.680±0.183
+  celiaco             massa   LP= 1102.675 B&B= 1140.000 (175 nós, 0.4s) CBC= 1140.000 GA= 1215.000±18.303
+  atleta_vegetariano  custo   LP=   14.211 B&B=   14.650 (675 nós, 3.8s) CBC=   14.650 GA=   15.333±0.461
+  atleta_vegetariano  sodio   LP=   55.100 B&B=   56.400 (48 nós, 0.1s) CBC=   56.400 GA=   57.170±0.535
+  atleta_vegetariano  massa   LP= 1229.993 B&B= 1270.000 (189 nós, 1.1s) CBC= 1270.000 GA= 1326.000±31.843
   -> resultados/e5_inteiro.csv (27 linhas)
 E6 convergência do Genético
+E8 sensibilidade dos parâmetros do Genético
+  menor: desvio médio 9.16%, mediana 4.96%, tempo médio 5.27 s
+  adotada: desvio médio 6.44%, mediana 3.41%, tempo médio 13.19 s  (E8 refeito com --somente-e8; a primeira medida de tempo sofreu carga concorrente)
+  -> resultados/e8_parametros_ga.csv (162 linhas)
 {
   "simplex_igual_cbc": true,
   "bb_igual_cbc": true,
-  "ga_gap_medio_pct": 5.883491102501538,
-  "ga_otimo_pct": 14.444444444444445
+  "ga_gap_medio_pct": 6.013692932116226,
+  "ga_otimo_pct": 14.814814814814815
 }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nutriliza · Otimização de dietas</title>
-<link rel="stylesheet" href="/static/estilo.css?v=4">
+<link rel="stylesheet" href="/static/estilo.css?v=6">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
@@ -58,7 +58,7 @@
         <li>Escolha o <b>método</b> e clique em <b>Otimizar</b> para ver o cardápio do dia, os nutrientes e os detalhes do método.</li>
         <li>Ou clique em <b>Comparar métodos</b> para ver Simplex, Branch and Bound e Algoritmo Genético no mesmo problema.</li>
       </ol>
-      <p class="dica">O Simplex responde na hora; o Branch and Bound costuma levar cerca de 1 s, o Algoritmo Genético uns 4 a 5 s e a comparação uns 6 s.</p>
+      <p class="dica">O Simplex responde na hora; o Branch and Bound costuma levar de 1 a 10 s, o Algoritmo Genético de 7 a 15 s e a comparação de 10 a 25 s, conforme o perfil.</p>
     </div>
 
     <div id="carregando" class="painel oculto" role="status" aria-live="polite"><span class="spin"></span> <span id="carregando-txt">Resolvendo…</span></div>
@@ -94,7 +94,7 @@
 
       <section class="painel" id="bloco-curva">
         <h2>Convergência do Algoritmo Genético</h2>
-        <p class="explica">Melhor cardápio factível encontrado até cada geração. A curva cai rápido no começo e depois estabiliza.</p>
+        <p class="explica">Melhor cardápio factível encontrado até cada geração (eixo em escala logarítmica). A busca local na elite faz a maior parte da melhora logo no início; depois a curva fica quase plana.</p>
         <div class="grafico"><canvas id="curva" aria-label="Melhor valor factível por geração"></canvas></div>
         <h3>Fração da população factível</h3>
         <p class="explica">Parte dos indivíduos de cada geração que atende a todas as restrições (0 = nenhum, 1 = todos).</p>
@@ -109,13 +109,13 @@
           que permite frações de porção: o valor dele é o limite teórico que nenhum cardápio inteiro consegue superar.</p>
         <div class="rolagem"><table id="cmp-tabela" class="dados"></table></div>
         <p class="explica"><b>Dif. ao B&amp;B</b>: distância percentual ao valor do Branch and Bound, que é o ótimo inteiro exato.
-          0 % é o ótimo; no Algoritmo Genético, quanto mais perto de 0 %, melhor a heurística.</p>
+          0 % é o ótimo; no Algoritmo Genético, quanto mais perto de 0 %, melhor a heurística. Na linha do Simplex aparece a distância absoluta, porque ele é só um limite.</p>
         <p id="cmp-conclusao" class="destaque-txt"></p>
       </section>
     </div>
   </section>
 </main>
 <footer>Trabalho acadêmico · limites didáticos, não substituem um nutricionista.</footer>
-<script src="/static/app.js?v=4"></script>
+<script src="/static/app.js?v=6"></script>
 </body>
 </html>

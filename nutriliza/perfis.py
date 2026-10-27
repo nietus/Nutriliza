@@ -6,6 +6,10 @@ frutas e hortaliças (WHO, 2003; 2012) e das posições de consenso sobre
 nutrição esportiva (Thomas, Erdman e Burke, 2016). São premissas didáticas
 para o modelo e não substituem a prescrição de um nutricionista.
 
+Todos os perfis são de homens adultos (19 a 50 anos): fibra, ferro e vitamina C seguem
+as DRIs masculinas. O sódio conta só o sódio dos alimentos: as preparações da TACO são
+sem sal, e o sal de cozinha não entra no modelo.
+
 Formato: nutriente -> (mínimo, máximo); None significa sem limite.
 """
 from __future__ import annotations
@@ -29,11 +33,11 @@ _BASE = {
     "proteina": (60, 140),
     "carboidrato": (250, 360),
     "gordura": (45, 85),
-    "fibra": (25, None),
+    "fibra": (38, None),
     "calcio": (1000, 2500),
     "ferro": (8, 45),
     "sodio": (None, 2000),
-    "vitamina_c": (75, 2000),
+    "vitamina_c": (90, 2000),
 }
 
 
@@ -44,13 +48,12 @@ def _com(**mudancas):
 
 
 _ATLETA = _com(kcal=(3000, 3400), proteina=(130, 180), carboidrato=(400, 520),
-               gordura=(60, 110), fibra=(30, None), sodio=(None, 3000),
-               vitamina_c=(90, 2000))
+               gordura=(60, 110), sodio=(None, 3000))
 
 PERFIS = {
     "referencia": {
         "nome": "Adulto de referência",
-        "descricao": "Adulto saudável, 70 kg, atividade moderada; manutenção do peso.",
+        "descricao": "Homem adulto saudável, 70 kg, atividade moderada; manutenção do peso.",
         "limites": _com(),
         "exclui": [],
     },
@@ -59,7 +62,7 @@ PERFIS = {
         "descricao": "Adulto com 95 kg; déficit de cerca de 500 kcal/dia, proteína "
                      "alta para preservar massa magra e gordura reduzida.",
         "limites": _com(kcal=(1500, 1700), proteina=(90, 130), carboidrato=(130, 200),
-                        gordura=(35, 55), fibra=(30, None)),
+                        gordura=(35, 55)),
         "exclui": [],
     },
     "subpeso": {
@@ -78,8 +81,8 @@ PERFIS = {
     },
     "vegetariano": {
         "nome": "Vegetariano (ovolactovegetariano)",
-        "descricao": "Sem carnes e peixes; ferro mínimo 1,8 vez maior pela menor "
-                     "biodisponibilidade do ferro vegetal.",
+        "descricao": "Sem carnes e peixes; ferro mínimo de 14 mg (1,75 vez o de 8 mg), "
+                     "pela menor biodisponibilidade do ferro vegetal.",
         "limites": _com(ferro=(14, 45)),
         "exclui": ["carne"],
     },

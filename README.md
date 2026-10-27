@@ -11,12 +11,12 @@ Programação Linear e Inteira. Trabalho da disciplina **Otimização de Sistema
 | Pasta | Conteúdo |
 |---|---|
 | `nutriliza/` | Modelo e solvers: Simplex de duas fases com preços-sombra, Branch and Bound e Algoritmo Genético, todos implementados do zero |
-| `data/alimentos.csv` | 37 alimentos com composição por 100 g (base TACO), porção caseira, preço e marcadores de restrição (carne, origem animal, lactose, glúten) |
+| `data/alimentos.csv` | 37 alimentos com composição por 100 g (30 da TACO, 5 da FoodData Central/USDA e 2 de rótulos; coluna `fonte`), porção caseira, preço e marcadores de restrição (carne, origem animal, lactose, glúten) |
 | `experimentos/` | Script que roda todos os experimentos e gera tabelas e figuras |
 | `resultados/` | Tabelas CSV, cardápios gerados (`cardapios.md`) e o log da execução |
 | `figuras/` | Gráficos usados no artigo e na documentação |
 | `artigo/` | Artigo no template da SBC (LaTeX) |
-| `docs/` | Documentação completa no template da PUC Minas (`Nutriliza_Documentacao.docx`) e o script que a gera |
+| `docs/` | Documentação no template da PUC Minas (`Nutriliza_Documentacao.docx` e `.pdf`) e o script que a gera |
 | `web/` | Interface web simples (front + API) para demonstrar os modelos |
 | `tests/` | Testes dos solvers contra exemplos de livro e contra o CBC |
 
@@ -53,14 +53,23 @@ Os três são validados contra o CBC (via PuLP).
 
 ## Como rodar
 
+Testado com Python 3.14 no Windows 11.
+
 ```bash
 pip install -r requirements.txt
 python -m pytest -q                              # testes
-python experimentos/rodar_experimentos.py        # todos os experimentos (~15 min)
-python experimentos/rodar_experimentos.py --rapido
-python docs/gerar_documentacao.py                # gera o .docx
+python experimentos/rodar_experimentos.py > resultados/execucao.txt   # todos os experimentos (~20 min)
+python artigo/gerar_tabelas.py                   # números e tabelas do artigo
+python docs/gerar_documentacao.py                # gera docs/Nutriliza_Documentacao.docx
 python web/app.py                                # interface em http://localhost:8000
 ```
+
+- `--rapido` roda o genético com menos sementes (~7 min) e grava em `resultados_rapido/` e
+  `figuras_rapido/`, sem tocar nos resultados usados no artigo.
+- `--somente-e8` refaz só o estudo de parâmetros do Genético (E8), usando os ótimos já
+  gravados em `resultados/e5_inteiro.csv`.
+- O PDF da documentação é a exportação do `.docx` (no Word, "Salvar como PDF", ou
+  `soffice --headless --convert-to pdf docs/Nutriliza_Documentacao.docx --outdir docs`).
 
 Uso direto no Python:
 

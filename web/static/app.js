@@ -13,14 +13,17 @@ const STATUS = {
 const DESC_METODO = {
   simplex: "Programação linear contínua: aceita frações de porção. Método exato e muito rápido; também dá os preços-sombra.",
   branch_and_bound: "Programação linear inteira: só porções inteiras. Divide o problema em ramos e usa o Simplex como limite; exato, mas mais lento.",
-  genetico: "Heurística inspirada na evolução: uma população de cardápios inteiros se recombina e sofre mutações. Rápida, mas sem garantia de ótimo.",
+  genetico: "Heurística inspirada na evolução: uma população de cardápios inteiros se recombina e sofre mutações. Não garante o ótimo; neste problema é mais lenta que o Branch and Bound, mas não exige modelo linear.",
+};
+const EXCLUI = {
+  carne: "carnes e peixes", animal: "todo produto de origem animal", lactose: "lactose", gluten: "glúten",
 };
 const TIPO_METODO = {
   simplex: "contínuo · exato", branch_and_bound: "inteiro · exato", genetico: "inteiro · heurístico",
 };
 const TEMPO_METODO = {
-  simplex: "", branch_and_bound: " (costuma levar cerca de 1 s; limite de 30 s)",
-  genetico: " (leva uns 4 a 5 s)",
+  simplex: "", branch_and_bound: " (costuma levar de 1 a 10 s; limite de 30 s)",
+  genetico: " (costuma levar de 7 a 15 s)",
 };
 
 const fmt = (v, d = 2) => v == null ? "—" :
@@ -29,6 +32,12 @@ const fmtObj = (v, obj) => v == null ? "—" :
   (UNID_OBJ[obj] === "R$" ? "R$ " + fmt(v) : fmt(v, 1) + " " + (UNID_OBJ[obj] || ""));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const selo = (st) => { const [t, c] = STATUS[st] || [st, "ruim"]; return `<span class="selo ${c}">${t}</span>`; };
+// percentual sem ruído de ponto flutuante: |x| < 0,005 vira "0 %"
+const fmtPct = (x, sinal = true) => {
+  if (x == null) return "—";
+  if (Math.abs(x) < 0.005) return "0 %";
+  return (sinal ? (x > 0 ? "+" : "−") : "") + fmt(Math.abs(x), 2) + " %";
+};
 const fmtTempo = (t) => t == null ? "—" : t < 1 ? fmt(t * 1000, 1) + " ms" : fmt(t, 2) + " s";
 const objAtual = () => OPC.objetivos.find((o) => o.id === $("objetivo").value);
 
@@ -64,7 +73,8 @@ function perfilAtual() { return OPC.perfis.find((p) => p.id === $("perfil").valu
 
 function preencherLimites() {
   const p = perfilAtual();
-  $("perfil-desc").textContent = p.descricao + (p.exclui.length ? ` Exclui: ${p.exclui.join(", ")}.` : "");
+  const ex = p.exclui.map((e) => EXCLUI[e] || e);
+  $("perfil-desc").textContent = p.descricao + (ex.length ? ` Exclui: ${ex.join(", ")}.` : "");
   $("limites").innerHTML = OPC.nutrientes.map((n) => {
     const [lo, hi] = p.limites[n.id];
     return `<tr><td>${esc(n.rotulo)}</td>
@@ -150,7 +160,9 @@ function renderResultado(d) {
       : "O tempo limite acabou antes de provar o ótimo; o gap mostra a distância máxima até ele.",
     genetico: "Melhor cardápio inteiro encontrado pela heurística; pode não ser o ótimo (compare com o Branch and Bound).",
   }[d.metodo] || "";
-  $("res-resumo").textContent = resumo;
+  const semSolucao = ["inviavel", "infactivel", "ilimitado"].includes(d.status);
+  $("res-resumo").textContent = semSolucao ? "" : resumo;
+  $("res-resumo").classList.toggle("oculto", semSolucao);
 
   const k = [kpi("Status", selo(d.status)), kpi(esc(objAtual().rotulo), fmtObj(d.valor, obj)),
              kpi("Tempo", fmtTempo(d.tempo))];
@@ -158,7 +170,7 @@ function renderResultado(d) {
   if (d.metodo === "simplex") k.push(kpi("Iterações (pivôs)", d.iteracoes, "Trocas de base feitas pelo Simplex"));
   if (d.metodo === "branch_and_bound") {
     k.push(kpi("Nós explorados", d.nos ?? "—", "Subproblemas resolvidos na árvore de busca"));
-    k.push(kpi("Gap", d.gap == null ? "—" : fmt(d.gap * 100, 2) + " %", "Distância entre a melhor solução e o limite; 0 % = ótimo provado"));
+    k.push(kpi("Gap", d.gap == null ? "—" : fmtPct(d.gap * 100, false), "Distância entre a melhor solução e o limite; 0 % = ótimo provado"));
   }
   if (d.metodo === "genetico") {
     k.push(kpi("Gerações", d.iteracoes));
@@ -178,7 +190,7 @@ function renderResultado(d) {
   }
 
   $("bloco-precos").classList.toggle("oculto", !d.precos_sombra);
-  if (d.precos_sombra) renderPrecos(d.precos_sombra, obj, d.sentido);
+  if (d.precos_sombra) renderPrecos(d.precos_sombra, obj, d.sentido, d.valor);
 
   $("bloco-curva").classList.toggle("oculto", !d.curva);
   if (d.curva) renderCurva(d.curva, obj);
@@ -228,7 +240,7 @@ function renderTotais(tot, fh) {
     <th>Faixa permitida</th><th>Situação</th></tr></thead><tbody>${linhas.join("")}</tbody>`;
 }
 
-function renderPrecos(precos, obj, sentido) {
+function renderPrecos(precos, obj, sentido, valor) {
   const u = UNID_OBJ[obj] || "";
   const fmtU = (v, d = 4) => u === "R$" ? "R$ " + fmt(Math.abs(v), d) : fmt(Math.abs(v), d) + " " + u;
   if (!precos.length) {
@@ -247,28 +259,44 @@ function renderPrecos(precos, obj, sentido) {
     mas o limite é ${fmt(p0.rhs, 0)} ${esc(un0)}: ${fmtU(p0.preco_sombra)} × ${fmt(p0.rhs, 0)} ≈ <b>${fmtU(p0.impacto, 2)}</b>
     de impacto no ótimo${piora ? " (afrouxar esse limite melhoraria a dieta)" : ""}.`;
 
+  // o resto vem dos limites de porção x_i <= M_i, cujos duais a API não devolve; pela dualidade forte
+  // (valor ótimo = soma de preço × lado direito de todas as restrições) a diferença é exatamente a parte deles
+  const sinal = (v) => Math.abs(v) < 0.005 ? "" : v > 0 ? "+" : "−";
+  let rodape = "";
+  if (valor != null) {
+    const resto = valor - precos.reduce((s, p) => s + p.impacto, 0);
+    rodape = `<tfoot>${Math.abs(resto) >= 0.005 ? `<tr class="resto"><td>Limites de porção Mᵢ</td><td class="n">xᵢ ≤ Mᵢ</td>
+      <td class="n">—</td><td class="n">${sinal(resto)}${fmtU(resto, 2)}</td></tr>` : ""}
+      <tr><td colspan="3">Valor ótimo <span class="dica">(a soma fecha pela dualidade forte)</span></td>
+      <td class="n">${fmtU(valor, 2)}</td></tr></tfoot>`;
+  }
   const corpo = precos.map((p) => `<tr><td>${esc(nomeRestricao(p.restricao))}</td>
     <td class="n">${p.sentido === ">=" ? "≥" : p.sentido === "<=" ? "≤" : "="} ${fmt(p.rhs, 1)} ${esc(unidRestricao(p.restricao))}</td>
     <td class="n">${p.preco_sombra > 0 ? "+" : "−"}${fmtU(p.preco_sombra)}</td>
     <td class="n"><b>${p.impacto > 0 ? "+" : "−"}${fmtU(p.impacto, 2)}</b></td></tr>`).join("");
   $("precos").innerHTML = `<thead><tr><th>Restrição ativa</th><th class="n">Limite</th>
-    <th class="n">Efeito de +1 unidade no limite</th><th class="n">Impacto no ótimo (preço × limite)</th></tr></thead><tbody>${corpo}</tbody>`;
+    <th class="n">Efeito de +1 unidade no limite</th><th class="n">Impacto no ótimo (preço × limite)</th></tr></thead><tbody>${corpo}</tbody>${rodape}`;
 }
 
+// eixo x logarítmico (geração + 1): a melhora quase toda acontece nas primeiras gerações
 function graficoLinha(canvas, curva, campo, cor, rotuloY, extraY) {
+  const ultimo = curva.length ? curva[curva.length - 1].geracao + 1 : 1;
   return new Chart(canvas, {
     type: "line",
     data: {
-      labels: curva.map((c) => c.geracao),
-      datasets: [{ label: rotuloY, data: curva.map((c) => c[campo]), borderColor: cor, backgroundColor: cor,
-                   pointRadius: 0, borderWidth: 2 }],
+      datasets: [{ label: rotuloY, data: curva.map((c) => ({ x: c.geracao + 1, y: c[campo] })), borderColor: cor,
+                   backgroundColor: cor, pointRadius: 0, borderWidth: 2 }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: { legend: { display: false } },
+      responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      interaction: { mode: "nearest", axis: "x", intersect: false },
+      plugins: { legend: { display: false },
+                 tooltip: { callbacks: { title: (it) => `Geração ${it[0].parsed.x - 1}` } } },
       scales: {
-        x: { title: { display: true, text: "Geração" }, ticks: { maxTicksLimit: 8 } },
+        x: { type: "logarithmic", min: 1, max: ultimo,
+             title: { display: true, text: "Geração + 1 (escala logarítmica)" },
+             afterBuildTicks: (ax) => { ax.ticks = [1, 10, 100, 500, 1000].filter((v) => v <= ultimo).map((v) => ({ value: v })); },
+             ticks: { callback: (v) => String(v) } },
         y: { title: { display: true, text: rotuloY }, ...extraY },
       },
     },
@@ -290,7 +318,7 @@ function renderCurva(curva, obj) {
 
 async function comparar() {
   if ($("comparar").disabled) return;
-  ocupado(true, "Comparando os três métodos", " (leva uns 6 s)");
+  ocupado(true, "Comparando os três métodos", " (costuma levar de 10 a 25 s)");
   $("res").classList.add("oculto");
   $("cmp").classList.add("oculto");
   try {
@@ -310,10 +338,17 @@ function esforco(m) {
   return `${m.iteracoes} pivôs`;
 }
 
-function difBB(m) {
-  if (m.dif_bb_pct == null) return "—";
+function difBB(m, bb, obj, sentido) {
   if (m.metodo === "branch_and_bound") return "0 % (referência)";
-  return (m.dif_bb_pct >= 0 ? "+" : "−") + fmt(Math.abs(m.dif_bb_pct), 2) + " %";
+  if (m.metodo === "simplex") {
+    // a relaxação é só um limite: mostra a distância absoluta, não um % (evita duas bases diferentes)
+    if (!bb || bb.valor == null || m.valor == null) return "—";
+    const dif = bb.valor - m.valor;
+    if (Math.abs(dif) < 1e-6) return "limite teórico: igual";
+    const lado = m.valor < bb.valor ? "abaixo" : "acima";
+    return `limite teórico: ${fmtObj(Math.abs(dif), obj)} ${lado}`;
+  }
+  return fmtPct(m.dif_bb_pct);
 }
 
 function renderComparacao(d) {
@@ -323,6 +358,7 @@ function renderComparacao(d) {
   // melhor valor entre os métodos inteiros factíveis (o Simplex é só o limite)
   const inteiros = d.metodos.filter((m) => m.metodo !== "simplex" && m.valor != null && m.factivel);
   const melhor = inteiros.length ? (d.sentido === "min" ? Math.min : Math.max)(...inteiros.map((m) => m.valor)) : null;
+  const bbRef = d.metodos.find((m) => m.metodo === "branch_and_bound");
   const linhas = d.metodos.map((m) => {
     const eMelhor = m.metodo !== "simplex" && melhor != null && m.factivel && Math.abs(m.valor - melhor) < 1e-6;
     const marca = m.metodo === "simplex" ? '<span class="selo limite">limite teórico</span>'
@@ -330,7 +366,7 @@ function renderComparacao(d) {
     return `<tr class="${eMelhor ? "destaque" : ""}">
       <td class="metodo"><b>${esc(m.metodo_rotulo)}</b><br><span class="dica">${TIPO_METODO[m.metodo] || ""}</span> ${marca}</td>
       <td>${selo(m.status)}</td><td class="n"><b>${fmtObj(m.valor, obj)}</b></td>
-      <td class="n">${difBB(m)}</td><td class="n">${fmtTempo(m.tempo)}</td><td class="n">${esforco(m)}</td>
+      <td class="n">${difBB(m, bbRef, obj, d.sentido)}</td><td class="n">${fmtTempo(m.tempo)}</td><td class="n">${esforco(m)}</td>
       <td class="n">${m.n_alimentos ?? "—"}</td>${obj === "custo" ? "" : `<td class="n">${m.custo == null ? "—" : "R$ " + fmt(m.custo)}</td>`}</tr>`;
   }).join("");
   $("cmp-tabela").innerHTML = `<thead><tr><th>Método</th><th>Status</th><th class="n">${esc(d.objetivo)}</th>

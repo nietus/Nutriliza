@@ -27,7 +27,7 @@ de slide). Na tabela de nutrientes, **no mínimo / no máximo** marca as restri�
 melhor método inteiro fica destacado e o Simplex aparece como limite teórico. **Enter** em qualquer campo
 roda **Otimizar**; durante o cálculo os botões ficam desabilitados e um contador mostra os segundos.
 
-O Branch and Bound tem limite de 30 s, mas costuma resolver em cerca de 1 s; o Algoritmo Genético roda 500 gerações (uns 4 a 5 s), e a comparação leva uns 6 s.
+O Branch and Bound tem limite de 30 s, mas costuma resolver em 1 a 10 s conforme o perfil; o Algoritmo Genético roda 500 gerações (7 a 15 s), e a comparação leva de 10 a 25 s.
 
 ## API
 

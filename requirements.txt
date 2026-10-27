@@ -5,3 +5,5 @@ matplotlib
 fastapi
 uvicorn
 pytest
+python-docx
+pymupdf

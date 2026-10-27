@@ -1,6 +1,6 @@
 {
   "simplex_igual_cbc": true,
   "bb_igual_cbc": true,
-  "ga_gap_medio_pct": 5.883491102501538,
-  "ga_otimo_pct": 14.444444444444445
+  "ga_gap_medio_pct": 6.013692932116226,
+  "ga_otimo_pct": 14.814814814814815
 }

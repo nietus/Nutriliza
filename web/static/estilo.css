@@ -107,3 +107,5 @@ button:focus-visible, summary:focus-visible { outline: 3px solid var(--barra); o
   table.dados td, table.dados th { white-space: nowrap; }
   table.dados td.metodo { white-space: normal; min-width: 130px; }
 }
+table.dados tfoot tr.resto td { font-weight: normal; color: var(--suave); }
+table.dados tfoot tr:last-child td { border-top: 1px solid var(--borda); }

@@ -32,6 +32,7 @@ sys.path.insert(0, str(RAIZ))
 from nutriliza import (NUTRIENTES, OBJETIVOS, PERFIS, branch_and_bound, cardapio,  # noqa: E402
                        carregar_alimentos, construir, genetico, resumo_nutricional, simplex)
 from nutriliza import referencia  # noqa: E402
+from nutriliza.modelo import coeficientes_objetivo  # noqa: E402
 
 RES = RAIZ / "resultados"
 FIG = RAIZ / "figuras"
@@ -85,9 +86,30 @@ def e1_linear(alim: pd.DataFrame) -> pd.DataFrame:
 
 
 def e2_conflito(alim: pd.DataFrame, e1: pd.DataFrame) -> pd.DataFrame:
-    print("E2 conflito entre funções objetivo")
-    df = e1[e1.perfil == "atleta"][["objetivo", "custo", "kcal", "proteina", "fibra",
-                                    "sodio", "gordura", "massa", "n_alimentos"]]
+    """Atleta: dieta ótima de cada função objetivo avaliada em todos os critérios.
+
+    Muitas funções objetivo têm ótimos alternativos (minimizar calorias só encosta no
+    mínimo de energia, por exemplo). Para a comparação não depender da base que o
+    Simplex encontrou, usa-se desempate lexicográfico: fixado o valor ótimo do
+    critério principal, escolhe-se a dieta de menor custo entre as empatadas.
+    """
+    print("E2 conflito entre funções objetivo (com desempate lexicográfico por custo)")
+    linhas = []
+    for obj in OBJETIVOS:
+        p = construir("atleta", obj, df=alim)
+        r = simplex.resolver(p)
+        x = r.x
+        if obj != "custo":
+            c_min, _ = coeficientes_objetivo(alim, obj)
+            limite = float(c_min @ x) + 1e-7 * max(1.0, abs(float(c_min @ x)))
+            p2 = construir("atleta", "custo", df=alim,
+                           restricoes_extra=[("criterio_principal", c_min, "<=", limite)])
+            r2 = simplex.resolver(p2)
+            x = r2.x
+        tot = resumo_nutricional(alim, x)
+        linhas.append({"objetivo": obj, **tot, "n_alimentos": int((x > 1e-6).sum())})
+    df = pd.DataFrame(linhas)[["objetivo", "custo", "kcal", "proteina", "fibra", "sodio",
+                               "gordura", "massa", "n_alimentos"]]
     salvar(df, "e2_conflito_atleta")
     return df
 
@@ -138,11 +160,16 @@ def e4_pareto(alim: pd.DataFrame) -> dict:
                        "custo": r.valor, "proteina": float(prot @ r.x),
                        "sodio": float(sod @ r.x), "dual": np.nan})
     c_ref = simplex.resolver(construir("referencia", "custo", df=alim)).valor
-    for w in np.linspace(0, 1, 11):
+    # soma ponderada: 11 pesos uniformes e, depois, pesos concentrados perto de 1, onde
+    # ficam os vértices intermediários (a fronteira de um PL é convexa, então todo
+    # vértice é alcançável por algum peso; o problema é saber qual)
+    pesos = [("ponderada", w) for w in np.linspace(0, 1, 11)]
+    pesos += [("ponderada_fina", w) for w in (0.95, 0.97, 0.98, 0.99, 0.993, 0.996, 0.998, 0.999)]
+    for nome, w in pesos:
         c = w * custo / c_ref + (1 - w) * sod / na_min
-        p = construir("referencia", f"ponderada_w{w:.1f}", df=alim, c_personalizado=c)
+        p = construir("referencia", f"ponderada_w{w:.3f}", df=alim, c_personalizado=c)
         r = simplex.resolver(p)
-        linhas.append({"fronteira": "ponderada", "perfil": "referencia", "eps": w,
+        linhas.append({"fronteira": nome, "perfil": "referencia", "eps": w,
                        "custo": float(custo @ r.x), "proteina": float(prot @ r.x),
                        "sodio": float(sod @ r.x), "dual": np.nan})
     df = pd.DataFrame(linhas)
@@ -163,9 +190,13 @@ def e4_pareto(alim: pd.DataFrame) -> dict:
     ax.plot(d.sodio, d.custo, "-", color=CORES[0], lw=2, label="ε-restrito")
     d = df[df.fronteira == "ponderada"]
     ax.plot(d.sodio, d.custo, "o", color=CORES[1], ms=6, mec="white", mew=1.5,
-            label="Soma ponderada")
+            label="Soma ponderada, 11 pesos uniformes")
+    d = df[df.fronteira == "ponderada_fina"]
+    ax.plot(d.sodio, d.custo, "D", color=CORES[6], ms=5, mec="white", mew=1.2,
+            label="Soma ponderada, pesos entre 0,95 e 0,999")
     ax.set_xscale("log")
-    ax.set_xticks([25, 50, 100, 250, 500, 1000, 2000], ["25", "50", "100", "250", "500", "1.000", "2.000"])
+    ax.set_xlim(20, 600)
+    ax.set_xticks([25, 50, 100, 250, 500], ["25", "50", "100", "250", "500"])
     ax.minorticks_off()
     ax.set_xlabel("Sódio (mg/dia, escala log)")
     ax.set_ylabel("Custo (R$/dia)")
@@ -327,11 +358,48 @@ def figura_custos(e1: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def e8_parametros_ga(alim: pd.DataFrame, e5: pd.DataFrame, sementes: int = 3) -> pd.DataFrame:
+    """Compara a configuração adotada do AG com uma menor, nas 27 instâncias inteiras."""
+    print("E8 sensibilidade dos parâmetros do Genético")
+    configs = [("menor", dict(populacao=120, geracoes=300, elite=4)),
+               ("adotada", dict(populacao=200, geracoes=500, elite=6))]
+    otimos = e5.set_index(["perfil", "objetivo"]).bb
+    linhas = []
+    for nome, cfg in configs:
+        for perfil in PERFIS:
+            for obj in OBJ_INTEIRO:
+                p = construir(perfil, obj, inteiro=True, df=alim)
+                otimo = float(otimos.loc[(perfil, obj)])
+                for s in range(sementes):
+                    g = genetico.resolver(p, semente=s, **cfg)
+                    gap = (g.valor - otimo) / abs(otimo) * 100 if g.valor is not None else np.nan
+                    linhas.append({"config": nome, **cfg, "perfil": perfil, "objetivo": obj,
+                                   "semente": s, "gap_pct": gap, "tempo_s": g.tempo})
+        d = pd.DataFrame([l for l in linhas if l["config"] == nome])
+        print(f"  {nome}: desvio médio {d.gap_pct.mean():.2f}%, mediana {d.gap_pct.median():.2f}%, "
+              f"tempo médio {d.tempo_s.mean():.2f} s", flush=True)
+    df = pd.DataFrame(linhas)
+    salvar(df, "e8_parametros_ga")
+    return df
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--rapido", action="store_true", help="3 sementes no genético em vez de 10")
+    ap.add_argument("--rapido", action="store_true",
+                    help="3 sementes no genético em vez de 10; grava em resultados_rapido/ e "
+                         "figuras_rapido/ para não sobrescrever os resultados do artigo")
+    ap.add_argument("--somente-e8", action="store_true",
+                    help="refaz só o E8, usando os ótimos já gravados em e5_inteiro.csv")
     args = ap.parse_args()
+    if args.rapido:
+        global RES, FIG
+        RES, FIG = RAIZ / "resultados_rapido", RAIZ / "figuras_rapido"
+        RES.mkdir(exist_ok=True)
+        FIG.mkdir(exist_ok=True)
     alim = carregar_alimentos()
+    if args.somente_e8:
+        e8_parametros_ga(alim, pd.read_csv(RES / "e5_inteiro.csv"), 2 if args.rapido else 3)
+        return
     e1 = e1_linear(alim)
     figura_custos(e1)
     e2_conflito(alim, e1)
@@ -341,6 +409,7 @@ def main() -> None:
     e5, curvas = e5_inteiro(alim, 3 if args.rapido else 10)
     otimo = float(e5[(e5.perfil == "atleta") & (e5.objetivo == "custo")].bb.iloc[0])
     e6_convergencia(curvas, otimo)
+    e8_parametros_ga(alim, e5, 2 if args.rapido else 3)
     resumo = {
         "simplex_igual_cbc": bool(np.allclose(e1.valor, e1.valor_cbc, rtol=1e-6)),
         "bb_igual_cbc": bool(np.allclose(e5.bb, e5.cbc, rtol=1e-6)),
